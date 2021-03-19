@@ -17,7 +17,7 @@ Add-on features:
         + Body shape only
         + None (bakes current body shape into mesh)
 
-Requirements: Blender 2.80+
+Requirements: Blender 2.80+, tested with 2.83.13
 
 Additional dependencies: None
 

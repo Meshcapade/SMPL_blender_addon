@@ -42,15 +42,13 @@ from bpy.types import ( PropertyGroup )
 # SMPL-X globals
 SMPLX_MODELFILE = "smplx_model_20210319.blend"
 
-SMPL_JOINT_NAMES = {
-    0:  'Pelvis',
-    1:  'L_Hip',        4:  'L_Knee',            7:  'L_Ankle',           10: 'L_Foot',
-    2:  'R_Hip',        5:  'R_Knee',            8:  'R_Ankle',           11: 'R_Foot',
-    3:  'Spine1',       6:  'Spine2',            9:  'Spine3',            12: 'Neck',            15: 'Head',
-    13: 'L_Collar',     16: 'L_Shoulder',       18: 'L_Elbow',            20: 'L_Wrist',         22: 'L_Hand',
-    14: 'R_Collar',     17: 'R_Shoulder',       19: 'R_Elbow',            21: 'R_Wrist',         23: 'R_Hand',
-}
-smplx_joints = len(SMPL_JOINT_NAMES) 
+SMPLX_JOINT_NAMES = [
+    'pelvis','left_hip','right_hip','spine1','left_knee','right_knee','spine2','left_ankle','right_ankle','spine3', 'left_foot','right_foot','neck','left_collar','right_collar','head','left_shoulder','right_shoulder','left_elbow', 'right_elbow','left_wrist','right_wrist',
+    'jaw','left_eye_smplhf','right_eye_smplhf','left_index1','left_index2','left_index3','left_middle1','left_middle2','left_middle3','left_pinky1','left_pinky2','left_pinky3','left_ring1','left_ring2','left_ring3','left_thumb1','left_thumb2','left_thumb3','right_index1','right_index2','right_index3','right_middle1','right_middle2','right_middle3','right_pinky1','right_pinky2','right_pinky3','right_ring1','right_ring2','right_ring3','right_thumb1','right_thumb2','right_thumb3','nose','right_eye','left_eye','right_ear','left_ear','left_big_toe','left_small_toe','left_heel','right_big_toe','right_small_toe','right_heel','left_thumb','left_index','left_middle','left_ring','left_pinky','right_thumb','right_index','right_middle','right_ring','right_pinky','right_eye_brow1','right_eye_brow2','right_eye_brow3','right_eye_brow4','right_eye_brow5','left_eye_brow5','left_eye_brow4','left_eye_brow3','left_eye_brow2','left_eye_brow1','nose1','nose2','nose3','nose4','right_nose_2','right_nose_1','nose_middle','left_nose_1','left_nose_2','right_eye1','right_eye2','right_eye3','right_eye4','right_eye5','right_eye6','left_eye4','left_eye3','left_eye2','left_eye1','left_eye6','left_eye5','right_mouth_1','right_mouth_2','right_mouth_3','mouth_top','left_mouth_3','left_mouth_2','left_mouth_1','left_mouth_5','left_mouth_4','mouth_bottom','right_mouth_4','right_mouth_5','right_lip_1','right_lip_2','lip_top','left_lip_2','left_lip_1','left_lip_3','lip_bottom','right_lip_3',
+    'right_contour_1','right_contour_2','right_contour_3','right_contour_4','right_contour_5','right_contour_6','right_contour_7','right_contour_8','contour_middle','left_contour_8','left_contour_7','left_contour_6','left_contour_5','left_contour_4','left_contour_3','left_contour_2','left_contour_1'
+]
+
+NUM_SMPLX_JOINTS = len(SMPLX_JOINT_NAMES)
 # End SMPL-X globals
 
 def rodrigues_from_pose(armature, bone_name):
@@ -382,7 +380,7 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
         bpy.context.view_layer.objects.active = armature
         bpy.ops.object.mode_set(mode='EDIT')
 
-        for index in range(smplx_joints):
+        for index in range(NUM_SMPLX_JOINTS):
             bone = armature.data.edit_bones[SMPLX_JOINT_NAMES[index]]
             bone.head = (0.0, 0.0, 0.0)
             bone.tail = (0.0, 0.0, 0.1)
@@ -430,9 +428,9 @@ class SMPLXSetPoseshapes(bpy.types.Operator):
 
     # https://github.com/gulvarol/surreal/blob/master/datageneration/main_part1.py
     # Calculate weights of pose corrective blend shapes
-    # Input is pose of all 24 joints, output is weights for all joints except pelvis (23)
+    # Input is pose of all 55 joints, output is weights for all joints except pelvis
     def rodrigues_to_posecorrective_weight(self, pose):
-        joints_posecorrective = smplx_joints
+        joints_posecorrective = NUM_SMPLX_JOINTS
         rod_rots = np.asarray(pose).reshape(joints_posecorrective, 3)
         mat_rots = [self.rodrigues_to_mat(rod_rot) for rod_rot in rod_rots]
         bshapes = np.concatenate([(mat_rot - np.eye(3)).ravel() for mat_rot in mat_rots[1:]])
@@ -448,9 +446,9 @@ class SMPLXSetPoseshapes(bpy.types.Operator):
         else:
             armature = obj.parent
 
-        pose = [0.0] * (smplx_joints * 3)
+        pose = [0.0] * (NUM_SMPLX_JOINTS * 3)
 
-        for index in range(smplx_joints):
+        for index in range(NUM_SMPLX_JOINTS):
             joint_name = SMPLX_JOINT_NAMES[index]
             joint_pose = rodrigues_from_pose(armature, joint_name)
             pose[index*3 + 0] = joint_pose[0]
