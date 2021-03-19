@@ -9,7 +9,7 @@ Add-on features:
 + Randomize/reset shape
 + ~~Update joint locations~~
 + ~~Enable/disable corrective poseshapes~~
-+ ~~Write current pose in SMPL-X theta notation to console~~
++ Write current pose in SMPL-X theta notation to console
 + ~~FBX export to Unity~~
     + Imported FBX will show up in Unity inspector without rotations and without scaling
     + Shape key export options: 
