@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 3, 19),
+    "version": (2021, 3, 22),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -40,7 +40,7 @@ from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProper
 from bpy.types import ( PropertyGroup )
 
 # SMPL-X globals
-SMPLX_MODELFILE = "smplx_model_20210319.blend"
+SMPLX_MODELFILE = "smplx_model_20210322.blend"
 
 SMPLX_JOINT_NAMES = [
     'pelvis','left_hip','right_hip','spine1','left_knee','right_knee','spine2','left_ankle','right_ankle','spine3', 'left_foot','right_foot','neck','left_collar','right_collar','head','left_shoulder','right_shoulder','left_elbow', 'right_elbow','left_wrist','right_wrist',
@@ -309,8 +309,9 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
     bl_description = ("Update joint locations after shape/expression changes")
     bl_options = {'REGISTER', 'UNDO'}
 
-    j_regressor_male = None
     j_regressor_female = None
+    j_regressor_male = None
+    j_regressor_neutral = None
 
     @classmethod
     def poll(cls, context):
@@ -336,10 +337,18 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
             with np.load(regressor_path) as data:
                 self.j_regressor_male = data['joint_regressor']
 
+        if self.j_regressor_neutral is None:
+            path = os.path.dirname(os.path.realpath(__file__))
+            regressor_path = os.path.join(path, "data", "smplx_joint_regressor_neutral.npz")
+            with np.load(regressor_path) as data:
+                self.j_regressor_neutral = data['joint_regressor']
+
         if "female" in obj.name:
             j_regressor = self.j_regressor_female
-        else:
+        elif "male" in obj.name:
             j_regressor = self.j_regressor_male
+        else:
+            j_regressor = self.j_regressor_neutral
 
         # Store current bone rotations
         armature = obj.parent

@@ -7,7 +7,7 @@ Add-on features:
 + ~~Set mesh texture~~
 + Position feet on ground plane (z=0)
 + Randomize/reset shape
-+ ~~Update joint locations~~
++ Update joint locations
 + ~~Enable/disable corrective poseshapes~~
 + Write current pose in SMPL-X theta notation to console
 + ~~FBX export to Unity~~
@@ -34,7 +34,7 @@ The information in this section is only needed when you clone the repository to 
 
 ### Installation of model
 + Requirements
-    + SMPL-X Blender model: `smplx_model_20210319.blend`
+    + SMPL-X Blender model: `smplx_model_20210322.blend`
     + SMPL-X joint regressors:
         + `smplx_joint_regressor_female.npz`
         + `smplx_joint_regressor_male.npz`
@@ -52,7 +52,6 @@ The information in this section is only needed when you clone the repository to 
 ## Usage
 
 ## TODO
-+ Add npz joint regressor
 + Add pose correctives
 + Add sample body texture
     + Body part segmentation
@@ -67,7 +66,7 @@ The information in this section is only needed when you clone the repository to 
 + Not needed: Add "Game Engine" model with separate blend shapes for positive and negative directions
   + Note: Unity 2018.3+ allows positive and negative blendshape weights and weights > 100
     + https://forum.unity.com/threads/removing-clamping-of-blendshapes-to-the-range-0-100.504973/
-+ Remove scipy dependency from joint regressor .pkl by switching to compressed .npz
++ Remove torch dependency from joint regressor .pkl by switching to compressed .npz
 + Use model with UV coordinates
 + Preserve current model transform and shape key state by using duplicate armature and skinned mesh for Unity export
     + Armature and mesh are exported without Blender number suffix for consistent display
