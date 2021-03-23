@@ -1,14 +1,14 @@
 # SMPL-X Blender Add-on
 
-This add-on allows you to add gender specific [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported SMPL-X mesh consist of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
+This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported SMPL-X mesh consist of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
 
 Add-on features:
-+ Add gender specific SMPL-X mesh to current scene
++ Add female/male/neutral specific SMPL-X mesh to current scene
 + ~~Set mesh texture~~
 + Position feet on ground plane (z=0)
 + Randomize/reset shape
 + Update joint locations
-+ ~~Enable/disable corrective poseshapes~~
++ Enable/disable corrective poseshapes
 + Write current pose in SMPL-X theta notation to console
 + ~~FBX export to Unity~~
     + Imported FBX will show up in Unity inspector without rotations and without scaling
@@ -16,6 +16,7 @@ Add-on features:
         + Body shape + posecorrectives
         + Body shape only
         + None (bakes current body shape into mesh)
++ ~~FBX export to Unreal Engine~~
 
 Requirements: Blender 2.80+, tested with 2.83.13
 
@@ -34,7 +35,7 @@ The information in this section is only needed when you clone the repository to 
 
 ### Installation of model
 + Requirements
-    + SMPL-X Blender model: `smplx_model_20210322.blend`
+    + SMPL-X Blender model: `smplx_model_20210323.blend`
     + SMPL-X joint regressors:
         + `smplx_joint_regressor_female.npz`
         + `smplx_joint_regressor_male.npz`
@@ -52,14 +53,14 @@ The information in this section is only needed when you clone the repository to 
 ## Usage
 
 ## TODO
-+ Add pose correctives
++ FBX export to Unreal (Send to Unreal?)
++ Test Unity export
 + Add sample body texture
     + Body part segmentation
     + Body texture
 + Use optimized joint regressor (beta_to_joints) for faster numpy joint recalc
 + Add Virtual Caliper (Regressor 2, 4 and 5)
 + Add Rigify control rig
-+ FBX export to Unreal (Send to Unreal?)
 
 ## DONE
 + Position root node on floor when positioning on ground

@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 3, 22),
+    "version": (2021, 3, 23),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -40,7 +40,7 @@ from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProper
 from bpy.types import ( PropertyGroup )
 
 # SMPL-X globals
-SMPLX_MODELFILE = "smplx_model_20210322.blend"
+SMPLX_MODELFILE = "smplx_model_20210323.blend"
 
 SMPLX_JOINT_NAMES = [
     'pelvis','left_hip','right_hip','spine1','left_knee','right_knee','spine2','left_ankle','right_ankle','spine3', 'left_foot','right_foot','neck','left_collar','right_collar','head','left_shoulder','right_shoulder','left_elbow', 'right_elbow','left_wrist','right_wrist',
