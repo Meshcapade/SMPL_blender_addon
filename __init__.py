@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 3, 23),
+    "version": (2021, 3, 24),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -28,7 +28,7 @@ bl_info = {
 
 import bpy
 import bmesh
-from bpy_extras.io_utils import ExportHelper # ExportHelper is a helper class, defines filename and invoke() function which calls the file selector.
+from bpy_extras.io_utils import ImportHelper,ExportHelper # ImportHelper/ExportHelper is a helper class, defines filename and invoke() function which calls the file selector.
 
 from mathutils import Vector
 from math import radians
@@ -36,7 +36,7 @@ import numpy as np
 import os
 import pickle
 
-from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProperty )
+from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProperty, StringProperty )
 from bpy.types import ( PropertyGroup )
 
 # SMPL-X globals
@@ -47,6 +47,7 @@ SMPLX_JOINT_NAMES = [
     'jaw','left_eye_smplhf','right_eye_smplhf','left_index1','left_index2','left_index3','left_middle1','left_middle2','left_middle3','left_pinky1','left_pinky2','left_pinky3','left_ring1','left_ring2','left_ring3','left_thumb1','left_thumb2','left_thumb3','right_index1','right_index2','right_index3','right_middle1','right_middle2','right_middle3','right_pinky1','right_pinky2','right_pinky3','right_ring1','right_ring2','right_ring3','right_thumb1','right_thumb2','right_thumb3'
 ]
 NUM_SMPLX_JOINTS = len(SMPLX_JOINT_NAMES)
+NUM_SMPLX_BODYJOINTS = 21
 # End SMPL-X globals
 
 def rodrigues_from_pose(armature, bone_name):
@@ -207,7 +208,7 @@ class SMPLXSetTexture(bpy.types.Operator):
 
 class SMPLXRandomShapes(bpy.types.Operator):
     bl_idname = "object.smplx_random_shapes"
-    bl_label = "Random Shapes"
+    bl_label = "Random"
     bl_description = ("Sets all shape blend shape keys to a random value")
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -462,8 +463,6 @@ class SMPLXSetPoseshapes(bpy.types.Operator):
             pose[index*3 + 1] = joint_pose[1]
             pose[index*3 + 2] = joint_pose[2]
 
-        # print("Current pose: " + str(pose))
-
         poseweights = self.rodrigues_to_posecorrective_weight(pose)
 
         # Set weights for pose corrective shape keys
@@ -565,6 +564,84 @@ class SMPLXResetPose(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
+    bl_idname = "object.smplx_load_pose"
+    bl_label = "Load Pose"
+    bl_description = ("Load pose from file")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    filter_glob: StringProperty(
+        default="*.pkl",
+        options={'HIDDEN'}
+    )
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if mesh or armature is active object
+            return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
+        except: return False
+
+    def set_pose_from_rodrigues(self, armature, bone_name, rodrigues):
+        rod = Vector((rodrigues[0], rodrigues[1], rodrigues[2]))
+        angle_rad = rod.length
+        axis = rod.normalized()
+
+        armature.pose.bones[bone_name].rotation_mode = 'AXIS_ANGLE'
+        armature.pose.bones[bone_name].rotation_axis_angle = (angle_rad, axis[0], axis[1], axis[2])
+        return
+
+
+    def execute(self, context):
+        obj = bpy.context.object
+
+        if obj.type == 'MESH':
+            armature = obj.parent
+        else:
+            armature = obj
+
+        print("Loading: " + self.filepath)
+
+        global_orient = None
+        body_pose = None
+        jaw_pose = None
+        #leye_pose = None
+        #reye_pose = None
+        #left_hand_pose = None
+        #right_hand_pose = None
+        with open(self.filepath, "rb") as f:
+            data = pickle.load(f, encoding="latin1")
+
+            global_orient = np.array(data["global_orient"]).reshape(3)
+
+            body_pose = np.array(data["body_pose"])
+            if body_pose.shape != (1, NUM_SMPLX_BODYJOINTS * 3):
+                log_error(f"Invalid body pose dimensions: {body_pose.shape}")
+                body_data = None
+                return
+
+            body_pose = np.array(data["body_pose"]).reshape(NUM_SMPLX_BODYJOINTS, 3)
+
+            jaw_pose = np.array(data["jaw_pose"]).reshape(3)
+            #leye_pose = np.array(data["leye_pose"]).reshape(3)
+            #reye_pose = np.array(data["reye_pose"]).reshape(3)
+            #left_hand_pose = np.array(data["left_hand_pose"]).reshape(-1, 3)
+            #right_hand_pose = np.array(data["right_hand_pose"]).reshape(-1, 3)
+
+        self.set_pose_from_rodrigues(armature, "pelvis", global_orient)
+
+        for index in range(NUM_SMPLX_BODYJOINTS):
+            pose_rodrigues = body_pose[index]
+            bone_name = SMPLX_JOINT_NAMES[index + 1] # body pose starts with left_hip
+            self.set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
+
+        self.set_pose_from_rodrigues(armature, "jaw", jaw_pose)
+
+        # Activate corrective poseshapes
+        bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
+
+        return {'FINISHED'}
+
 class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
     bl_idname = "object.smplx_export_unity_fbx"
     bl_label = "Export Unity FBX"
@@ -603,7 +680,7 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
 
         if export_shape_keys != 'SHAPE_POSE':
             # Remove pose corrective shape keys
-            print('Removing pose corrective shape keys')
+            print("Removing pose corrective shape keys")
             num_shape_keys = len(skinned_mesh.data.shape_keys.key_blocks.keys())
 
             current_shape_key_index = 0
@@ -747,6 +824,8 @@ class SMPLX_PT_Pose(bpy.types.Panel):
         col.separator()
         col.operator("object.smplx_write_pose")
         col.separator()
+        col.operator("object.smplx_load_pose")
+        col.separator()
 
 class SMPLX_PT_Export(bpy.types.Panel):
     bl_label = "Export"
@@ -790,6 +869,7 @@ classes = [
     SMPLXSetPoseshapes,
     SMPLXResetPoseshapes,
     SMPLXWritePose,
+    SMPLXLoadPose,
     SMPLXResetPose,
     SMPLXExportUnityFBX,
     SMPLX_PT_Model,

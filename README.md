@@ -4,12 +4,13 @@ This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned mes
 
 Add-on features:
 + Add female/male/neutral specific SMPL-X mesh to current scene
-+ ~~Set mesh texture~~
++ ~~Set texture~~
 + Position feet on ground plane (z=0)
 + Randomize/reset shape
 + Update joint locations
 + Enable/disable corrective poseshapes
 + Write current pose in SMPL-X theta notation to console
++ Load pose from .pkl file
 + ~~FBX export to Unity~~
     + Imported FBX will show up in Unity inspector without rotations and without scaling
     + Shape key export options: 
