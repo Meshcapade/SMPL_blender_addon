@@ -298,7 +298,8 @@ class SMPLXSnapGroundPlane(bpy.types.Operator):
         # Translate skinned mesh and apply translation
         bpy.ops.object.mode_set(mode='OBJECT')
         context.view_layer.objects.active = obj
-        obj.location = (0.0, 0.0, -z_min)
+        mesh_location = Vector(obj.location)
+        obj.location = (mesh_location.x, mesh_location.y, mesh_location.z - z_min)
 
         bpy.ops.object.transform_apply(location = True)
 
@@ -602,6 +603,7 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
 
         print("Loading: " + self.filepath)
 
+        translation = None
         global_orient = None
         body_pose = None
         jaw_pose = None
@@ -611,6 +613,8 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
         #right_hand_pose = None
         with open(self.filepath, "rb") as f:
             data = pickle.load(f, encoding="latin1")
+
+            translation = np.array(data["transl"]).reshape(3)
 
             global_orient = np.array(data["global_orient"]).reshape(3)
 
@@ -636,6 +640,9 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             self.set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
         self.set_pose_from_rodrigues(armature, "jaw", jaw_pose)
+
+        # Set translation
+        armature.location = (translation[0], -translation[2], translation[1])
 
         # Activate corrective poseshapes
         bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
