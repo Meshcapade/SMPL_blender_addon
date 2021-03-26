@@ -8,6 +8,7 @@ Add-on features:
 + Position feet on ground plane (z=0)
 + Randomize/reset shape
 + Update joint locations
++ Randomize/reset face expression shape
 + Enable/disable corrective poseshapes
 + Write current pose in SMPL-X theta notation to console
 + Load pose from .pkl file
@@ -36,7 +37,7 @@ The information in this section is only needed when you clone the repository to 
 
 ### Installation of model
 + Requirements
-    + SMPL-X Blender model: `smplx_model_20210323.blend`
+    + SMPL-X Blender model: `smplx_model_20210326.blend`
     + SMPL-X joint regressors:
         + `smplx_joint_regressor_female.npz`
         + `smplx_joint_regressor_male.npz`

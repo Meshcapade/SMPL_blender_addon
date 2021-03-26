@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 3, 24),
+    "version": (2021, 3, 26),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -40,7 +40,7 @@ from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProper
 from bpy.types import ( PropertyGroup )
 
 # SMPL-X globals
-SMPLX_MODELFILE = "smplx_model_20210323.blend"
+SMPLX_MODELFILE = "smplx_model_20210326.blend"
 
 SMPLX_JOINT_NAMES = [
     'pelvis','left_hip','right_hip','spine1','left_knee','right_knee','spine2','left_ankle','right_ankle','spine3', 'left_foot','right_foot','neck','left_collar','right_collar','head','left_shoulder','right_shoulder','left_elbow', 'right_elbow','left_wrist','right_wrist',
@@ -251,6 +251,50 @@ class SMPLXResetShapes(bpy.types.Operator):
                 key_block.value = 0.0
 
         bpy.ops.object.smplx_update_joint_locations('EXEC_DEFAULT')
+
+        return {'FINISHED'}
+
+class SMPLXRandomExpressionShapes(bpy.types.Operator):
+    bl_idname = "object.smplx_random_expression_shapes"
+    bl_label = "Random Face Expression"
+    bl_description = ("Sets all face expression blend shape keys to a random value")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if mesh is active object
+            return context.object.type == 'MESH'
+        except: return False
+
+    def execute(self, context):
+        obj = bpy.context.object
+        bpy.ops.object.mode_set(mode='OBJECT')
+        for key_block in obj.data.shape_keys.key_blocks:
+            if key_block.name.startswith("Exp"):
+                key_block.value = np.random.uniform(-2, 2)
+
+        return {'FINISHED'}
+
+class SMPLXResetExpressionShapes(bpy.types.Operator):
+    bl_idname = "object.smplx_reset_expression_shapes"
+    bl_label = "Reset"
+    bl_description = ("Resets all blend shape keys for face expression")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if mesh is active object
+            return context.object.type == 'MESH'
+        except: return False
+
+    def execute(self, context):
+        obj = bpy.context.object
+        bpy.ops.object.mode_set(mode='OBJECT')
+        for key_block in obj.data.shape_keys.key_blocks:
+            if key_block.name.startswith("Exp"):
+                key_block.value = 0.0
 
         return {'FINISHED'}
 
@@ -814,6 +858,11 @@ class SMPLX_PT_Shape(bpy.types.Panel):
         col.separator()
 
         col.operator("object.smplx_update_joint_locations")
+        col.separator()
+        row = col.row(align=True)
+        split = row.split(factor=0.75, align=True)
+        split.operator("object.smplx_random_expression_shapes")
+        split.operator("object.smplx_reset_expression_shapes")
 
 class SMPLX_PT_Pose(bpy.types.Panel):
     bl_label = "Pose"
@@ -871,6 +920,8 @@ classes = [
     SMPLXSetTexture,
     SMPLXRandomShapes,
     SMPLXResetShapes,
+    SMPLXRandomExpressionShapes,
+    SMPLXResetExpressionShapes,
     SMPLXSnapGroundPlane,
     SMPLXUpdateJointLocations,
     SMPLXSetPoseshapes,
