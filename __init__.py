@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 3, 26),
+    "version": (2021, 4, 1),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -48,6 +48,7 @@ SMPLX_JOINT_NAMES = [
 ]
 NUM_SMPLX_JOINTS = len(SMPLX_JOINT_NAMES)
 NUM_SMPLX_BODYJOINTS = 21
+NUM_SMPLX_HANDJOINTS = 15
 # End SMPL-X globals
 
 def rodrigues_from_pose(armature, bone_name):
@@ -68,6 +69,15 @@ def update_corrective_poseshapes(self, context):
     else:
         bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
 
+def set_pose_from_rodrigues(armature, bone_name, rodrigues):
+    rod = Vector((rodrigues[0], rodrigues[1], rodrigues[2]))
+    angle_rad = rod.length
+    axis = rod.normalized()
+
+    armature.pose.bones[bone_name].rotation_mode = 'AXIS_ANGLE'
+    armature.pose.bones[bone_name].rotation_axis_angle = (angle_rad, axis[0], axis[1], axis[2])
+    return
+
 # Property groups for UI
 class PG_SMPLXProperties(PropertyGroup):
 
@@ -87,6 +97,12 @@ class PG_SMPLXProperties(PropertyGroup):
         name = "Corrective Pose Shapes",
         description = "Enable/disable corrective pose shapes of SMPL-X model",
         update = update_corrective_poseshapes
+    )
+
+    smplx_handpose: EnumProperty(
+        name = "",
+        description = "SMPL-X hand pose",
+        items = [ ("flat", "Flat", ""), ("relaxed", "Relaxed", "") ]
     )
 
     smplx_export_setting_shape_keys: EnumProperty(
@@ -544,6 +560,57 @@ class SMPLXResetPoseshapes(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class SMPLXSetHandpose(bpy.types.Operator):
+    bl_idname = "scene.smplx_set_handpose"
+    bl_label = "Set"
+    bl_description = ("Set selected hand pose")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    hand_poses = None
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if mesh or armature is active object
+            return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
+        except: return False
+
+    def execute(self, context):
+        obj = bpy.context.object
+        if obj.type == 'MESH':
+            armature = obj.parent
+        else:
+            armature = obj
+
+        if self.hand_poses is None:
+            path = os.path.dirname(os.path.realpath(__file__))
+            data_path = os.path.join(path, "data", "smplx_handposes.npz")
+            with np.load(data_path, allow_pickle=True) as data:
+                self.hand_poses = data["hand_poses"].item()
+
+        hand_pose_name = context.window_manager.smplx_tool.smplx_handpose
+        print("Setting hand pose: " + hand_pose_name)
+
+        if hand_pose_name not in self.hand_poses:
+            self.report({"ERROR"}, f"Desired hand pose not existing: {hand_pose_name}")
+            return {"CANCELLED"}
+
+        (left_hand_pose, right_hand_pose) = self.hand_poses[hand_pose_name]
+
+        hand_pose = np.concatenate( (left_hand_pose, right_hand_pose) ).reshape(-1, 3)
+
+        hand_joint_start_index = 1 + NUM_SMPLX_BODYJOINTS + 3
+        for index in range(2 * NUM_SMPLX_HANDJOINTS):
+            pose_rodrigues = hand_pose[index]            
+            bone_name = SMPLX_JOINT_NAMES[index + hand_joint_start_index]
+            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
+
+        # Update corrective poseshapes if used
+        if context.window_manager.smplx_tool.smplx_corrective_poseshapes:
+            bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
+
+        return {'FINISHED'}
+
 class SMPLXWritePose(bpy.types.Operator):
     bl_idname = "object.smplx_write_pose"
     bl_label = "Write Pose To Console"
@@ -627,16 +694,6 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
         except: return False
 
-    def set_pose_from_rodrigues(self, armature, bone_name, rodrigues):
-        rod = Vector((rodrigues[0], rodrigues[1], rodrigues[2]))
-        angle_rad = rod.length
-        axis = rod.normalized()
-
-        armature.pose.bones[bone_name].rotation_mode = 'AXIS_ANGLE'
-        armature.pose.bones[bone_name].rotation_axis_angle = (angle_rad, axis[0], axis[1], axis[2])
-        return
-
-
     def execute(self, context):
         obj = bpy.context.object
 
@@ -676,14 +733,14 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             #left_hand_pose = np.array(data["left_hand_pose"]).reshape(-1, 3)
             #right_hand_pose = np.array(data["right_hand_pose"]).reshape(-1, 3)
 
-        self.set_pose_from_rodrigues(armature, "pelvis", global_orient)
+        set_pose_from_rodrigues(armature, "pelvis", global_orient)
 
         for index in range(NUM_SMPLX_BODYJOINTS):
             pose_rodrigues = body_pose[index]
             bone_name = SMPLX_JOINT_NAMES[index + 1] # body pose starts with left_hip
-            self.set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
+            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
-        self.set_pose_from_rodrigues(armature, "jaw", jaw_pose)
+        set_pose_from_rodrigues(armature, "jaw", jaw_pose)
 
         # Set translation
         armature.location = (translation[0], -translation[2], translation[1])
@@ -818,7 +875,7 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
 
 class SMPLX_PT_Model(bpy.types.Panel):
     bl_label = "SMPL-X Model"
-    bl_category = "SMPLX"
+    bl_category = "SMPL-X"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
 
@@ -840,7 +897,7 @@ class SMPLX_PT_Model(bpy.types.Panel):
 
 class SMPLX_PT_Shape(bpy.types.Panel):
     bl_label = "Shape"
-    bl_category = "SMPLX"
+    bl_category = "SMPL-X"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
 
@@ -866,7 +923,7 @@ class SMPLX_PT_Shape(bpy.types.Panel):
 
 class SMPLX_PT_Pose(bpy.types.Panel):
     bl_label = "Pose"
-    bl_category = "SMPLX"
+    bl_category = "SMPL-X"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
 
@@ -877,6 +934,14 @@ class SMPLX_PT_Pose(bpy.types.Panel):
         col.prop(context.window_manager.smplx_tool, "smplx_corrective_poseshapes")
         col.separator()
         col.operator("object.smplx_set_poseshapes")
+
+        col.separator()
+        col.label(text="Hand Pose:")
+        row = col.row(align=True)
+        split = row.split(factor=0.75, align=True)
+        split.prop(context.window_manager.smplx_tool, "smplx_handpose")
+        split.operator("scene.smplx_set_handpose", text="Set")
+
         col.separator()
         col.operator("object.smplx_write_pose")
         col.separator()
@@ -885,7 +950,7 @@ class SMPLX_PT_Pose(bpy.types.Panel):
 
 class SMPLX_PT_Export(bpy.types.Panel):
     bl_label = "Export"
-    bl_category = "SMPLX"
+    bl_category = "SMPL-X"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
 
@@ -926,6 +991,7 @@ classes = [
     SMPLXUpdateJointLocations,
     SMPLXSetPoseshapes,
     SMPLXResetPoseshapes,
+    SMPLXSetHandpose,
     SMPLXWritePose,
     SMPLXLoadPose,
     SMPLXResetPose,
