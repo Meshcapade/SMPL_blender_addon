@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 4, 1),
+    "version": (2021, 4, 12),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -40,7 +40,7 @@ from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProper
 from bpy.types import ( PropertyGroup )
 
 # SMPL-X globals
-SMPLX_MODELFILE = "smplx_model_20210326.blend"
+SMPLX_MODELFILE = "smplx_model_20210412.blend"
 
 SMPLX_JOINT_NAMES = [
     'pelvis','left_hip','right_hip','spine1','left_knee','right_knee','spine2','left_ankle','right_ankle','spine3', 'left_foot','right_foot','neck','left_collar','right_collar','head','left_shoulder','right_shoulder','left_elbow', 'right_elbow','left_wrist','right_wrist',
@@ -102,7 +102,7 @@ class PG_SMPLXProperties(PropertyGroup):
     smplx_handpose: EnumProperty(
         name = "",
         description = "SMPL-X hand pose",
-        items = [ ("flat", "Flat", ""), ("relaxed", "Relaxed", "") ]
+        items = [ ("relaxed", "Relaxed", ""), ("flat", "Flat", "") ]
     )
 
     smplx_export_setting_shape_keys: EnumProperty(
@@ -710,8 +710,8 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
         jaw_pose = None
         #leye_pose = None
         #reye_pose = None
-        #left_hand_pose = None
-        #right_hand_pose = None
+        left_hand_pose = None
+        right_hand_pose = None
         with open(self.filepath, "rb") as f:
             data = pickle.load(f, encoding="latin1")
 
@@ -730,8 +730,8 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             jaw_pose = np.array(data["jaw_pose"]).reshape(3)
             #leye_pose = np.array(data["leye_pose"]).reshape(3)
             #reye_pose = np.array(data["reye_pose"]).reshape(3)
-            #left_hand_pose = np.array(data["left_hand_pose"]).reshape(-1, 3)
-            #right_hand_pose = np.array(data["right_hand_pose"]).reshape(-1, 3)
+            left_hand_pose = np.array(data["left_hand_pose"]).reshape(-1, 3)
+            right_hand_pose = np.array(data["right_hand_pose"]).reshape(-1, 3)
 
         set_pose_from_rodrigues(armature, "pelvis", global_orient)
 
@@ -741,6 +741,20 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
         set_pose_from_rodrigues(armature, "jaw", jaw_pose)
+
+        # Left hand
+        start_name_index = 1 + NUM_SMPLX_BODYJOINTS + 3
+        for i in range(0, NUM_SMPLX_HANDJOINTS):
+            pose_rodrigues = left_hand_pose[i]
+            bone_name = SMPLX_JOINT_NAMES[start_name_index + i]
+            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
+
+        # Right hand
+        start_name_index = 1 + NUM_SMPLX_BODYJOINTS + 3 + NUM_SMPLX_HANDJOINTS
+        for i in range(0, NUM_SMPLX_HANDJOINTS):
+            pose_rodrigues = right_hand_pose[i]
+            bone_name = SMPLX_JOINT_NAMES[start_name_index + i]
+            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
         # Set translation
         armature.location = (translation[0], -translation[2], translation[1])

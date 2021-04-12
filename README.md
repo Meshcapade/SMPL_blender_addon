@@ -10,6 +10,7 @@ Add-on features:
 + Update joint locations
 + Randomize/reset face expression shape
 + Enable/disable corrective poseshapes
++ Change hand pose (flat, relaxed)
 + Write current pose in SMPL-X theta notation to console
 + Load pose from .pkl file
 + ~~FBX export to Unity~~
@@ -37,7 +38,7 @@ The information in this section is only needed when you clone the repository to 
 
 ### Installation of model
 + Requirements
-    + SMPL-X Blender model: `smplx_model_20210326.blend`
+    + SMPL-X Blender model: `smplx_model_20210412.blend`
     + SMPL-X joint regressors:
         + `smplx_joint_regressor_female.npz`
         + `smplx_joint_regressor_male.npz`
@@ -56,6 +57,7 @@ The information in this section is only needed when you clone the repository to 
 
 ## TODO
 + FBX export to Unreal (Send to Unreal?)
++ Set hand pose when loading .pkl which has hand pose
 + Test Unity export
 + Add sample body texture
     + Body part segmentation
