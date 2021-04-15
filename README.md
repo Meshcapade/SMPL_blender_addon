@@ -4,7 +4,7 @@ This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned mes
 
 Add-on features:
 + Add female/male/neutral specific SMPL-X mesh to current scene
-+ ~~Set texture~~
++ Set sample albedo texture
 + Position feet on ground plane (z=0)
 + Randomize/reset shape
 + Update joint locations
@@ -21,7 +21,7 @@ Add-on features:
         + None (bakes current body shape into mesh)
 + ~~FBX export to Unreal Engine~~
 
-Requirements: Blender 2.80+, tested with 2.83.13
+Requirements: Blender 2.80+, tested with 2.92.0
 
 Additional dependencies: None
 
@@ -38,14 +38,16 @@ The information in this section is only needed when you clone the repository to 
 
 ### Installation of model
 + Requirements
-    + SMPL-X Blender model: `smplx_model_20210412.blend`
+    + SMPL-X Blender model: `smplx_model_20210415.blend`
     + SMPL-X joint regressors:
         + `smplx_joint_regressor_female.npz`
         + `smplx_joint_regressor_male.npz`
         + `smplx_joint_regressor_neutral.npz`
+    + SMPL-X handposes:
+        + `smplx_handposes.npz`
 
 + Clone the repository and go to the `smplx_blender_addon` folder
-+ Make `data` subfolder and copy the `.blend` and `.npz` files into the subfolder
++ Copy the `.blend` and `.npz` files into the `data` subfolder
 
 ### Creation of Blender add-on ZIP file
 + Go to `build` subfolder
@@ -54,14 +56,16 @@ The information in this section is only needed when you clone the repository to 
     + Windows 10 users can use Windows Subsystem for Linux (WSL) for this step
 
 ## Usage
++ TODO
+## Acknowledgements
++ We thank [Meshcapade](https://meshcapade.com/) for providing the SMPL-X female/male sample textures (`smplx_texture_f_02_alb.png`, `smplx_texture_m_01_alb.png`) under [Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/) license.
 
 ## TODO
-+ FBX export to Unreal (Send to Unreal?)
-+ Set hand pose when loading .pkl which has hand pose
++ Fix relaxed hand local coordinate systems
++ FBX export to Unreal (Send to Unreal)
 + Test Unity export
 + Add sample body texture
     + Body part segmentation
-    + Body texture
 + Use optimized joint regressor (beta_to_joints) for faster numpy joint recalc
 + Add Virtual Caliper (Regressor 2, 4 and 5)
 + Add Rigify control rig
@@ -75,3 +79,7 @@ The information in this section is only needed when you clone the repository to 
 + Use model with UV coordinates
 + Preserve current model transform and shape key state by using duplicate armature and skinned mesh for Unity export
     + Armature and mesh are exported without Blender number suffix for consistent display
++ Add sample body texture
+    + Body texture
++ Set hand pose when loading .pkl which has hand pose
+

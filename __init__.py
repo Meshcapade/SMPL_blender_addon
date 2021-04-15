@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 4, 12),
+    "version": (2021, 4, 15),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -40,7 +40,7 @@ from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProper
 from bpy.types import ( PropertyGroup )
 
 # SMPL-X globals
-SMPLX_MODELFILE = "smplx_model_20210412.blend"
+SMPLX_MODELFILE = "smplx_model_20210415.blend"
 
 SMPLX_JOINT_NAMES = [
     'pelvis','left_hip','right_hip','spine1','left_knee','right_knee','spine2','left_ankle','right_ankle','spine3', 'left_foot','right_foot','neck','left_collar','right_collar','head','left_shoulder','right_shoulder','left_elbow', 'right_elbow','left_wrist','right_wrist',
@@ -90,7 +90,7 @@ class PG_SMPLXProperties(PropertyGroup):
     smplx_texture: EnumProperty(
         name = "",
         description = "SMPL-X model texture",
-        items = [ ("NONE", "None", ""), ("UV_GRID", "UV Grid", ""), ("COLOR_GRID", "Color Grid", "") ]
+        items = [ ("NONE", "None", ""), ("smplx_texture_f_02_alb.png", "Female", ""), ("smplx_texture_m_01_alb.png", "Male", ""), ("UV_GRID", "UV Grid", ""), ("COLOR_GRID", "Color Grid", "") ]
     )
 
     smplx_corrective_poseshapes: BoolProperty(
@@ -203,22 +203,26 @@ class SMPLXSetTexture(bpy.types.Operator):
             if node_texture is None:
                 node_texture = nodes.new(type="ShaderNodeTexImage")
 
-            if texture == 'UV_GRID':
+            if (texture == 'UV_GRID') or (texture == 'COLOR_GRID'):
                 if texture not in bpy.data.images:
-                    bpy.ops.image.new(name=texture, generated_type='UV_GRID')
-
+                    bpy.ops.image.new(name=texture, generated_type=texture)
                 image = bpy.data.images[texture]
             else:
                 if texture not in bpy.data.images:
-                    bpy.ops.image.new(name=texture, generated_type='COLOR_GRID')
-
-                image = bpy.data.images[texture]
+                    path = os.path.dirname(os.path.realpath(__file__))
+                    texture_path = os.path.join(path, "data", texture)
+                    image = bpy.data.images.load(texture_path)
+                else:
+                    image = bpy.data.images[texture]
 
             node_texture.image = image
 
             # Link texture node to shader node if not already linked
             if len(node_texture.outputs[0].links) == 0:
                 links.new(node_texture.outputs[0], node_shader.inputs[0])
+
+        # Switch viewport shading to Material Preview to show texture
+        bpy.context.space_data.shading.type = 'MATERIAL'
 
         return {'FINISHED'}
 
