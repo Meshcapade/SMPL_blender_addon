@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 4, 15),
+    "version": (2021, 4, 21),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -30,7 +30,7 @@ import bpy
 import bmesh
 from bpy_extras.io_utils import ImportHelper,ExportHelper # ImportHelper/ExportHelper is a helper class, defines filename and invoke() function which calls the file selector.
 
-from mathutils import Vector
+from mathutils import Vector, Quaternion
 from math import radians
 import numpy as np
 import os
@@ -40,7 +40,7 @@ from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProper
 from bpy.types import ( PropertyGroup )
 
 # SMPL-X globals
-SMPLX_MODELFILE = "smplx_model_20210415.blend"
+SMPLX_MODELFILE = "smplx_model_20210421.blend"
 
 SMPLX_JOINT_NAMES = [
     'pelvis','left_hip','right_hip','spine1','left_knee','right_knee','spine2','left_ankle','right_ankle','spine3', 'left_foot','right_foot','neck','left_collar','right_collar','head','left_shoulder','right_shoulder','left_elbow', 'right_elbow','left_wrist','right_wrist',
@@ -69,13 +69,25 @@ def update_corrective_poseshapes(self, context):
     else:
         bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
 
-def set_pose_from_rodrigues(armature, bone_name, rodrigues):
+def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=None):
     rod = Vector((rodrigues[0], rodrigues[1], rodrigues[2]))
     angle_rad = rod.length
     axis = rod.normalized()
 
-    armature.pose.bones[bone_name].rotation_mode = 'AXIS_ANGLE'
-    armature.pose.bones[bone_name].rotation_axis_angle = (angle_rad, axis[0], axis[1], axis[2])
+    if rodrigues_reference is None:
+        armature.pose.bones[bone_name].rotation_mode = 'AXIS_ANGLE'
+        armature.pose.bones[bone_name].rotation_axis_angle = (angle_rad, axis[0], axis[1], axis[2])
+    else:
+        quat = Quaternion(axis, angle_rad)
+        rod_reference = Vector((rodrigues_reference[0], rodrigues_reference[1], rodrigues_reference[2]))
+        angle_rad_reference = rod_reference.length
+        axis_reference = rod_reference.normalized()
+        quat_reference = Quaternion(axis_reference, angle_rad_reference)
+
+        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
+        # Rotate first into reference pose and then add the target pose
+        armature.pose.bones[bone_name].rotation_quaternion = quat_reference @ quat
+        armature.pose.bones[bone_name].rotation_mode = 'AXIS_ANGLE'
     return
 
 # Property groups for UI
@@ -103,6 +115,11 @@ class PG_SMPLXProperties(PropertyGroup):
         name = "",
         description = "SMPL-X hand pose",
         items = [ ("relaxed", "Relaxed", ""), ("flat", "Flat", "") ]
+    )
+
+    smplx_load_pose_shape: BoolProperty(
+        name = "Shape",
+        description = "Apply shape parameters from pose file",
     )
 
     smplx_export_setting_shape_keys: EnumProperty(
@@ -142,6 +159,9 @@ class SMPLXAddGender(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         context.view_layer.objects.active = bpy.data.objects[object_name]
         bpy.data.objects[object_name].select_set(True)
+
+        # Set currently selected hand pose
+        bpy.ops.object.smplx_set_handpose('EXEC_DEFAULT')
 
         return {'FINISHED'}
 
@@ -446,7 +466,7 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
         vertices_matrix = np.reshape(vertices_np, (len(mesh_from_eval.vertices), 3))
         object_eval.to_mesh_clear() # Remove temporary mesh
 
-        # Note: Current joint regressor uses 6890 vertices as input which is slow numpy operation
+        # Note: Current joint regressor uses vertices as input which results in slow numpy operation
         joint_locations = j_regressor @ vertices_matrix
 
         # Set new bone joint locations
@@ -565,7 +585,7 @@ class SMPLXResetPoseshapes(bpy.types.Operator):
         return {'FINISHED'}
 
 class SMPLXSetHandpose(bpy.types.Operator):
-    bl_idname = "scene.smplx_set_handpose"
+    bl_idname = "object.smplx_set_handpose"
     bl_label = "Set"
     bl_description = ("Set selected hand pose")
     bl_options = {'REGISTER', 'UNDO'}
@@ -618,7 +638,7 @@ class SMPLXSetHandpose(bpy.types.Operator):
 class SMPLXWritePose(bpy.types.Operator):
     bl_idname = "object.smplx_write_pose"
     bl_label = "Write Pose To Console"
-    bl_description = ("Writes SMPL-X pose thetas to console window")
+    bl_description = ("Writes SMPL-X flat hand pose thetas to console window")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -683,13 +703,15 @@ class SMPLXResetPose(bpy.types.Operator):
 class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
     bl_idname = "object.smplx_load_pose"
     bl_label = "Load Pose"
-    bl_description = ("Load pose from file")
+    bl_description = ("Load relaxed-hand model pose from file")
     bl_options = {'REGISTER', 'UNDO'}
 
     filter_glob: StringProperty(
         default="*.pkl",
         options={'HIDDEN'}
     )
+
+    hand_pose_relaxed = None
 
     @classmethod
     def poll(cls, context):
@@ -705,6 +727,16 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             armature = obj.parent
         else:
             armature = obj
+            obj = armature.children[0]
+            context.view_layer.objects.active = obj # mesh needs to be active object for recalculating joint locations
+
+        if self.hand_pose_relaxed is None:
+            path = os.path.dirname(os.path.realpath(__file__))
+            data_path = os.path.join(path, "data", "smplx_handposes.npz")
+            with np.load(data_path, allow_pickle=True) as data:
+                hand_poses = data["hand_poses"].item()
+                (left_hand_pose, right_hand_pose) = hand_poses["relaxed"]
+                self.hand_pose_relaxed = np.concatenate( (left_hand_pose, right_hand_pose) ).reshape(-1, 3)
 
         print("Loading: " + self.filepath)
 
@@ -716,6 +748,8 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
         #reye_pose = None
         left_hand_pose = None
         right_hand_pose = None
+        betas = None
+        expression = None
         with open(self.filepath, "rb") as f:
             data = pickle.load(f, encoding="latin1")
 
@@ -737,6 +771,22 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             left_hand_pose = np.array(data["left_hand_pose"]).reshape(-1, 3)
             right_hand_pose = np.array(data["right_hand_pose"]).reshape(-1, 3)
 
+            betas = np.array(data["betas"]).reshape(-1).tolist()
+            expression = np.array(data["expression"]).reshape(-1).tolist()
+
+        # Update shape if selected
+        if context.window_manager.smplx_tool.smplx_load_pose_shape:
+            bpy.ops.object.mode_set(mode='OBJECT')
+            for index, beta in enumerate(betas):
+                key_block_name = f"Shape{index:03}"
+
+                if key_block_name in obj.data.shape_keys.key_blocks:
+                    obj.data.shape_keys.key_blocks[key_block_name].value = beta
+                else:
+                    print(f"ERROR: No key block for: {key_block_name}")
+
+            bpy.ops.object.smplx_update_joint_locations('EXEC_DEFAULT')
+
         set_pose_from_rodrigues(armature, "pelvis", global_orient)
 
         for index in range(NUM_SMPLX_BODYJOINTS):
@@ -751,20 +801,31 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
         for i in range(0, NUM_SMPLX_HANDJOINTS):
             pose_rodrigues = left_hand_pose[i]
             bone_name = SMPLX_JOINT_NAMES[start_name_index + i]
-            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
+            pose_relaxed_rodrigues = self.hand_pose_relaxed[i]
+            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, pose_relaxed_rodrigues)
 
         # Right hand
         start_name_index = 1 + NUM_SMPLX_BODYJOINTS + 3 + NUM_SMPLX_HANDJOINTS
         for i in range(0, NUM_SMPLX_HANDJOINTS):
             pose_rodrigues = right_hand_pose[i]
             bone_name = SMPLX_JOINT_NAMES[start_name_index + i]
-            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
+            pose_relaxed_rodrigues = self.hand_pose_relaxed[NUM_SMPLX_HANDJOINTS + i]
+            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, pose_relaxed_rodrigues)
 
         # Set translation
         armature.location = (translation[0], -translation[2], translation[1])
 
         # Activate corrective poseshapes
         bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
+
+        # Set face expression
+        for index, exp in enumerate(expression):
+            key_block_name = f"Exp{index:03}"
+
+            if key_block_name in obj.data.shape_keys.key_blocks:
+                obj.data.shape_keys.key_blocks[key_block_name].value = exp
+            else:
+                print(f"ERROR: No key block for: {key_block_name}")
 
         return {'FINISHED'}
 
@@ -958,12 +1019,15 @@ class SMPLX_PT_Pose(bpy.types.Panel):
         row = col.row(align=True)
         split = row.split(factor=0.75, align=True)
         split.prop(context.window_manager.smplx_tool, "smplx_handpose")
-        split.operator("scene.smplx_set_handpose", text="Set")
+        split.operator("object.smplx_set_handpose", text="Set")
 
         col.separator()
         col.operator("object.smplx_write_pose")
         col.separator()
-        col.operator("object.smplx_load_pose")
+        row = col.row(align=True)
+        split = row.split(factor=0.5, align=True)
+        split.operator("object.smplx_load_pose")
+        split.prop(context.window_manager.smplx_tool, "smplx_load_pose_shape")
         col.separator()
 
 class SMPLX_PT_Export(bpy.types.Panel):
