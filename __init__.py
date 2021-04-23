@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 4, 21),
+    "version": (2021, 4, 23),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -753,15 +753,17 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
         with open(self.filepath, "rb") as f:
             data = pickle.load(f, encoding="latin1")
 
-            translation = np.array(data["transl"]).reshape(3)
+            if "transl" in data:
+                translation = np.array(data["transl"]).reshape(3)
 
-            global_orient = np.array(data["global_orient"]).reshape(3)
+            if "global_orient" in data:
+                global_orient = np.array(data["global_orient"]).reshape(3)
 
             body_pose = np.array(data["body_pose"])
             if body_pose.shape != (1, NUM_SMPLX_BODYJOINTS * 3):
-                log_error(f"Invalid body pose dimensions: {body_pose.shape}")
+                print(f"Invalid body pose dimensions: {body_pose.shape}")
                 body_data = None
-                return
+                return {'CANCELLED'}
 
             body_pose = np.array(data["body_pose"]).reshape(NUM_SMPLX_BODYJOINTS, 3)
 
@@ -787,7 +789,8 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
 
             bpy.ops.object.smplx_update_joint_locations('EXEC_DEFAULT')
 
-        set_pose_from_rodrigues(armature, "pelvis", global_orient)
+        if global_orient is not None:
+            set_pose_from_rodrigues(armature, "pelvis", global_orient)
 
         for index in range(NUM_SMPLX_BODYJOINTS):
             pose_rodrigues = body_pose[index]
@@ -812,8 +815,9 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             pose_relaxed_rodrigues = self.hand_pose_relaxed[NUM_SMPLX_HANDJOINTS + i]
             set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, pose_relaxed_rodrigues)
 
-        # Set translation
-        armature.location = (translation[0], -translation[2], translation[1])
+        if translation is not None:
+            # Set translation
+            armature.location = (translation[0], -translation[2], translation[1])
 
         # Activate corrective poseshapes
         bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
