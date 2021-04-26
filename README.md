@@ -61,7 +61,6 @@ The information in this section is only needed when you clone the repository to 
 + We thank [Meshcapade](https://meshcapade.com/) for providing the SMPL-X female/male sample textures (`smplx_texture_f_02_alb.png`, `smplx_texture_m_01_alb.png`) under [Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/) license.
 
 ## TODO
-+ Fix relaxed hand local coordinate systems
 + FBX export to Unreal (Send to Unreal)
 + Test Unity export
 + Add sample body texture
@@ -82,4 +81,4 @@ The information in this section is only needed when you clone the repository to 
 + Add sample body texture
     + Body texture
 + Set hand pose when loading .pkl which has hand pose
-
++ Fix hand poses when relative to relaxed hand pose
