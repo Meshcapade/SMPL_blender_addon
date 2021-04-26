@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 4, 23),
+    "version": (2021, 4, 26),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -52,13 +52,13 @@ NUM_SMPLX_HANDJOINTS = 15
 # End SMPL-X globals
 
 def rodrigues_from_pose(armature, bone_name):
-    # Ensure that rotation mode is AXIS_ANGLE so the we get a correct readout of current pose
-    armature.pose.bones[bone_name].rotation_mode = 'AXIS_ANGLE'
-    axis_angle = armature.pose.bones[bone_name].rotation_axis_angle
+    # Use quaternion mode for all bone rotations
+    if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
+        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
 
-    angle = axis_angle[0]
-
-    rodrigues = Vector((axis_angle[1], axis_angle[2], axis_angle[3]))
+    quat = armature.pose.bones[bone_name].rotation_quaternion
+    (axis, angle) = quat.to_axis_angle()
+    rodrigues = axis
     rodrigues.normalize()
     rodrigues = rodrigues * angle
     return rodrigues
@@ -74,20 +74,21 @@ def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=
     angle_rad = rod.length
     axis = rod.normalized()
 
+    if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
+        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
+
+    quat = Quaternion(axis, angle_rad)
+
     if rodrigues_reference is None:
-        armature.pose.bones[bone_name].rotation_mode = 'AXIS_ANGLE'
-        armature.pose.bones[bone_name].rotation_axis_angle = (angle_rad, axis[0], axis[1], axis[2])
+        armature.pose.bones[bone_name].rotation_quaternion = quat
     else:
-        quat = Quaternion(axis, angle_rad)
         rod_reference = Vector((rodrigues_reference[0], rodrigues_reference[1], rodrigues_reference[2]))
         angle_rad_reference = rod_reference.length
         axis_reference = rod_reference.normalized()
         quat_reference = Quaternion(axis_reference, angle_rad_reference)
 
-        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
         # Rotate first into reference pose and then add the target pose
         armature.pose.bones[bone_name].rotation_quaternion = quat_reference @ quat
-        armature.pose.bones[bone_name].rotation_mode = 'AXIS_ANGLE'
     return
 
 # Property groups for UI
@@ -441,15 +442,14 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
 
         bone_rotations = {}
         for pose_bone in armature.pose.bones:
-            pose_bone.rotation_mode = 'AXIS_ANGLE'
-            axis_angle = pose_bone.rotation_axis_angle
-            bone_rotations[pose_bone.name] = (axis_angle[0], axis_angle[1], axis_angle[2], axis_angle[3])
+            if pose_bone.rotation_mode != 'QUATERNION':
+                pose_bone.rotation_mode = 'QUATERNION'
+            quat = pose_bone.rotation_quaternion
+            bone_rotations[pose_bone.name] = (quat[0], quat[1], quat[2], quat[3])
 
-        # Set model in default pose
+        # Set model to default pose
         for bone in armature.pose.bones:
-            bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
-            bone.rotation_mode = 'AXIS_ANGLE'
-            bone.rotation_axis_angle = (0, 0, 1, 0)
+            bone.rotation_quaternion = Quaternion()
 
         # Reset corrective poseshapes if used
         if context.window_manager.smplx_tool.smplx_corrective_poseshapes:
@@ -486,8 +486,7 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
 
         # Restore pose
         for pose_bone in armature.pose.bones:
-            pose_bone.rotation_mode = 'AXIS_ANGLE'
-            pose_bone.rotation_axis_angle = bone_rotations[pose_bone.name]
+            pose_bone.rotation_quaternion = bone_rotations[pose_bone.name]
 
         # Restore corrective poseshapes if used
         if context.window_manager.smplx_tool.smplx_corrective_poseshapes:
@@ -692,8 +691,9 @@ class SMPLXResetPose(bpy.types.Operator):
             armature = obj
 
         for bone in armature.pose.bones:
-            bone.rotation_mode = 'AXIS_ANGLE'
-            bone.rotation_axis_angle = (0, 0, 1, 0)
+            if bone.rotation_mode != 'QUATERNION':
+                bone.rotation_mode = 'QUATERNION'
+            bone.rotation_quaternion = Quaternion()
 
         # Reset corrective pose shapes
         bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
