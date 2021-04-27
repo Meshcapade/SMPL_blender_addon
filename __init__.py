@@ -122,7 +122,8 @@ class PG_SMPLXProperties(PropertyGroup):
     smplx_corrective_poseshapes: BoolProperty(
         name = "Corrective Pose Shapes",
         description = "Enable/disable corrective pose shapes of SMPL-X model",
-        update = update_corrective_poseshapes
+        update = update_corrective_poseshapes,
+        default = True
     )
 
     smplx_handpose: EnumProperty(
