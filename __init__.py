@@ -131,11 +131,6 @@ class PG_SMPLXProperties(PropertyGroup):
         items = [ ("relaxed", "Relaxed", ""), ("flat", "Flat", "") ]
     )
 
-    smplx_load_pose_shape: BoolProperty(
-        name = "Shape",
-        description = "Apply shape parameters from pose file",
-    )
-
     smplx_export_setting_shape_keys: EnumProperty(
         name = "",
         description = "Blend shape export settings",
@@ -387,7 +382,7 @@ class SMPLXSnapGroundPlane(bpy.types.Operator):
         object_eval.to_mesh_clear() # Remove temporary mesh
 
         # Adjust height of armature so that lowest vertex is on ground plane.
-        # Do not apply new armature location so that we are later able to show loaded poses at their desired height.
+        # Do not apply new armature location transform so that we are later able to show loaded poses at their desired height.
         armature.location.z = armature.location.z - z_min
 
         """
@@ -729,6 +724,12 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
         options={'HIDDEN'}
     )
 
+    update_shape: BoolProperty(
+        name="Update shape parameters",
+        description="Update shape parameters using the beta shape information in the loaded file",
+        default=True
+    )
+
     hand_pose_relaxed = None
 
     @classmethod
@@ -795,7 +796,7 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             expression = np.array(data["expression"]).reshape(-1).tolist()
 
         # Update shape if selected
-        if context.window_manager.smplx_tool.smplx_load_pose_shape:
+        if self.update_shape:
             bpy.ops.object.mode_set(mode='OBJECT')
             for index, beta in enumerate(betas):
                 key_block_name = f"Shape{index:03}"
@@ -1046,11 +1047,7 @@ class SMPLX_PT_Pose(bpy.types.Panel):
         col.separator()
         col.operator("object.smplx_write_pose")
         col.separator()
-        row = col.row(align=True)
-        split = row.split(factor=0.5, align=True)
-        split.operator("object.smplx_load_pose")
-        split.prop(context.window_manager.smplx_tool, "smplx_load_pose_shape")
-        col.separator()
+        col.operator("object.smplx_load_pose")
 
 class SMPLX_PT_Export(bpy.types.Panel):
     bl_label = "Export"
