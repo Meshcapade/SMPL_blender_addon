@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 4, 26),
+    "version": (2021, 4, 27),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -116,7 +116,7 @@ class PG_SMPLXProperties(PropertyGroup):
     smplx_texture: EnumProperty(
         name = "",
         description = "SMPL-X model texture",
-        items = [ ("NONE", "None", ""), ("smplx_texture_f_02_alb.png", "Female", ""), ("smplx_texture_m_01_alb.png", "Male", ""), ("UV_GRID", "UV Grid", ""), ("COLOR_GRID", "Color Grid", "") ]
+        items = [ ("NONE", "None", ""), ("smplx_texture_f_alb.png", "Female", ""), ("smplx_texture_m_alb.png", "Male", ""), ("UV_GRID", "UV Grid", ""), ("COLOR_GRID", "Color Grid", "") ]
     )
 
     smplx_corrective_poseshapes: BoolProperty(
@@ -509,8 +509,8 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
 
 class SMPLXSetPoseshapes(bpy.types.Operator):
     bl_idname = "object.smplx_set_poseshapes"
-    bl_label = "Set Pose Shapes"
-    bl_description = ("Sets corrective poseshapes for current pose")
+    bl_label = "Update Pose Shapes"
+    bl_description = ("Sets and updates corrective poseshapes for current pose")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod

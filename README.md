@@ -58,7 +58,7 @@ The information in this section is only needed when you clone the repository to 
 ## Usage
 + TODO
 ## Acknowledgements
-+ We thank [Meshcapade](https://meshcapade.com/) for providing the SMPL-X female/male sample textures (`smplx_texture_f_02_alb.png`, `smplx_texture_m_01_alb.png`) under [Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/) license.
++ We thank [Meshcapade](https://meshcapade.com/) for providing the SMPL-X female/male sample textures (`smplx_texture_f_alb.png`, `smplx_texture_m_alb.png`) under [Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/) license.
 
 ## TODO
 + FBX export to Unreal (Send to Unreal)
