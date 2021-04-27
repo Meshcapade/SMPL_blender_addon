@@ -1,8 +1,7 @@
 # SMPL-X Blender add-on license information
-# (C) Max Planck Institute for Intelligent Systems
 
 + Generated body mesh data using this add-on:
-    + (C) Max Planck Institute for Intelligent Systems
+    + Copyright Max Planck Institute for Intelligent Systems
     + Licensed as Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
       + https://creativecommons.org/licenses/by-nc/4.0/
 
@@ -11,12 +10,12 @@
 
 + Digital assets:
   + Textures (data/*.png)
-    + (C) Meshcapade GmbH (https://meshcapade.com/)
+    + Copyright Meshcapade GmbH (https://meshcapade.com/)
     + Licensed under Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
       + https://creativecommons.org/licenses/by-nc/4.0/
 
   + Model data (data/*.blend, data/*.npz)
-    + (C) Max Planck Institute for Intelligent Systems
+    + Copyright Max Planck Institute for Intelligent Systems
     + Licensed under SMPL-X Model License
     + https://smpl-x.is.tue.mpg.de/modellicense
 
