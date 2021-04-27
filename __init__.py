@@ -386,6 +386,11 @@ class SMPLXSnapGroundPlane(bpy.types.Operator):
         z_min = (min(vertices_world, key=lambda item: item.z)).z
         object_eval.to_mesh_clear() # Remove temporary mesh
 
+        # Adjust height of armature so that lowest vertex is on ground plane.
+        # Do not apply new armature location so that we are later able to show loaded poses at their desired height.
+        armature.location.z = armature.location.z - z_min
+
+        """
         # Translate armature edit bones
         context.view_layer.objects.active = armature
         bpy.ops.object.mode_set(mode='EDIT')
@@ -400,7 +405,7 @@ class SMPLXSnapGroundPlane(bpy.types.Operator):
         obj.location = (mesh_location.x, mesh_location.y, mesh_location.z - z_min)
 
         bpy.ops.object.transform_apply(location = True)
-
+        """
         return {'FINISHED'}
 
 class SMPLXUpdateJointLocations(bpy.types.Operator):
