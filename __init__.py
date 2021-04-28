@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 4, 27),
+    "version": (2021, 4, 28),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -386,22 +386,6 @@ class SMPLXSnapGroundPlane(bpy.types.Operator):
         # Do not apply new armature location transform so that we are later able to show loaded poses at their desired height.
         armature.location.z = armature.location.z - z_min
 
-        """
-        # Translate armature edit bones
-        context.view_layer.objects.active = armature
-        bpy.ops.object.mode_set(mode='EDIT')
-        for edit_bone in armature.data.edit_bones:
-            if edit_bone.name != "root":
-                edit_bone.translate(Vector((0.0, 0.0, -z_min)))
-
-        # Translate skinned mesh and apply translation
-        bpy.ops.object.mode_set(mode='OBJECT')
-        context.view_layer.objects.active = obj
-        mesh_location = Vector(obj.location)
-        obj.location = (mesh_location.x, mesh_location.y, mesh_location.z - z_min)
-
-        bpy.ops.object.transform_apply(location = True)
-        """
         return {'FINISHED'}
 
 class SMPLXUpdateJointLocations(bpy.types.Operator):
@@ -885,6 +869,22 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
         bpy.ops.object.duplicate()
         skinned_mesh = bpy.context.object
         armature = skinned_mesh.parent
+
+        # Apply armature object location to armature root bone and skinned mesh so that armature and skinned mesh are at origin before export
+        context.view_layer.objects.active = armature
+        context.view_layer.objects.active = armature
+        armature_offset = Vector(armature.location)
+        armature.location = (0, 0, 0)
+        bpy.ops.object.mode_set(mode='EDIT')
+        for edit_bone in armature.data.edit_bones:
+            if edit_bone.name != "root":
+                edit_bone.translate(armature_offset)
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+        context.view_layer.objects.active = skinned_mesh
+        mesh_location = Vector(skinned_mesh.location)
+        skinned_mesh.location = mesh_location + armature_offset
+        bpy.ops.object.transform_apply(location = True)
 
         # Reset pose
         bpy.ops.object.smplx_reset_pose('EXEC_DEFAULT')

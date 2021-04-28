@@ -17,11 +17,12 @@ This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned mes
 + Change hand pose (flat, relaxed)
 + Write current pose in SMPL-X theta notation to console
 + Load pose from .pkl file (full pose with 55 joints in Rodrigues notation)
-+ ~~FBX export to Unity~~
++ FBX export to Unity
+    + Exports mesh in default T-Pose with flat hands
     + Imported FBX will show up in Unity inspector without rotations and without scaling
     + Shape key export options: 
-        + Body shape + posecorrectives
-        + Body shape only
+        + Body shape and posecorrectives
+        + Body shape without posecorrectives
         + None (bakes current body shape into mesh)
 ## Installation
 1. Blender>Edit>Preferences>Add-ons>Install
