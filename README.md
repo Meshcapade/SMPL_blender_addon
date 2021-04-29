@@ -1,6 +1,6 @@
 # SMPL-X Blender Add-on
 
-This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported SMPL-X mesh consist of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
+This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported SMPL-X mesh consists of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
 
 + Requirements: Blender 2.80+, tested with 2.92.0
 + Additional dependencies: None
@@ -30,6 +30,11 @@ This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned mes
 3. Enable SMPL-X for Blender add-on
 4. Enable sidebar in 3D Viewport>View>Sidebar
 5. SMPL-X tool will show up in sidebar
+
+## Notes
++ The add-on GUI (gender, texture, hand pose) does not reflect the state of the currently selected SMPL-X model if you work with multiple models in one scene.
++ To maintain editor responsiveness the add-on does not automatically recalculate joint locations when you change the shape manually via Blender shape keys. Use the `Update Joint Locations` button to update the joint locations after manual shape key change.
++ To maintain editor responsiveness the add-on does not automatically recalculate the corrective pose shape keys when edit the armature pose. Use the `Update Pose Shapes` button to update the joint locations after pose changes.
 
 ## License
 + Generated body mesh data using this add-on:
