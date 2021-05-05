@@ -38,9 +38,8 @@ This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned mes
 
 ## License
 + Generated body mesh data using this add-on:
-    + Copyright Max Planck Institute for Intelligent Systems
-    + Licensed as Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
-      + https://creativecommons.org/licenses/by-nc/4.0/
+    + Licensed under SMPL-X Model License
+        + https://smpl-x.is.tue.mpg.de/modellicense
 
 + See LICENSE.md for further license information including commercial licensing
 
