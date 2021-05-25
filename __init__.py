@@ -27,17 +27,16 @@ bl_info = {
     "category": "SMPL-X"}
 
 import bpy
-import bmesh
 from bpy_extras.io_utils import ImportHelper,ExportHelper # ImportHelper/ExportHelper is a helper class, defines filename and invoke() function which calls the file selector.
-
 from mathutils import Vector, Quaternion
+from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProperty, StringProperty )
+from bpy.types import ( PropertyGroup )
+
+import json
 from math import radians
 import numpy as np
 import os
 import pickle
-
-from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProperty, StringProperty )
-from bpy.types import ( PropertyGroup )
 
 # SMPL-X globals
 SMPLX_MODELFILE = "smplx_model_20210421.blend"
@@ -409,65 +408,45 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
         obj = bpy.context.object
         bpy.ops.object.mode_set(mode='OBJECT')
 
-
         if self.j_regressor_female is None:
             path = os.path.dirname(os.path.realpath(__file__))
-            regressor_path = os.path.join(path, "data", "smplx_joint_regressor_female.npz")
-            with np.load(regressor_path) as data:
-                self.j_regressor_female = data['joint_regressor']
-
+            regressor_path = os.path.join(path, "data", "smplx_betas_to_joints_female.json")
+            with open(regressor_path) as f:
+                data = json.load(f)
+                self.j_regressor_female = (np.asarray(data["betasJ_regr"]), np.asarray(data["template_J"]))
+    
         if self.j_regressor_male is None:
             path = os.path.dirname(os.path.realpath(__file__))
-            regressor_path = os.path.join(path, "data", "smplx_joint_regressor_male.npz")
-            with np.load(regressor_path) as data:
-                self.j_regressor_male = data['joint_regressor']
+            regressor_path = os.path.join(path, "data", "smplx_betas_to_joints_male.json")
+            with open(regressor_path) as f:
+                data = json.load(f)
+                self.j_regressor_male = (np.asarray(data["betasJ_regr"]), np.asarray(data["template_J"]))
 
         if self.j_regressor_neutral is None:
             path = os.path.dirname(os.path.realpath(__file__))
-            regressor_path = os.path.join(path, "data", "smplx_joint_regressor_neutral.npz")
-            with np.load(regressor_path) as data:
-                self.j_regressor_neutral = data['joint_regressor']
+            regressor_path = os.path.join(path, "data", "smplx_betas_to_joints_neutral.json")
+            with open(regressor_path) as f:
+                data = json.load(f)
+                self.j_regressor_neutral = (np.asarray(data["betasJ_regr"]), np.asarray(data["template_J"]))
 
         if "female" in obj.name:
-            j_regressor = self.j_regressor_female
+            (betas_to_joints, template_j) = self.j_regressor_female
         elif "male" in obj.name:
-            j_regressor = self.j_regressor_male
+            (betas_to_joints, template_j) = self.j_regressor_male
         else:
-            j_regressor = self.j_regressor_neutral
+            (betas_to_joints, template_j) = self.j_regressor_neutral
 
-        # Store current bone rotations
-        armature = obj.parent
+        # Get beta shapes
+        betas = []
+        for key_block in obj.data.shape_keys.key_blocks:
+            if key_block.name.startswith("Shape"):
+                betas.append(key_block.value)
+        betas = np.array(betas)
 
-        bone_rotations = {}
-        for pose_bone in armature.pose.bones:
-            if pose_bone.rotation_mode != 'QUATERNION':
-                pose_bone.rotation_mode = 'QUATERNION'
-            quat = pose_bone.rotation_quaternion
-            bone_rotations[pose_bone.name] = (quat[0], quat[1], quat[2], quat[3])
-
-        # Set model to default pose
-        for bone in armature.pose.bones:
-            bone.rotation_quaternion = Quaternion()
-
-        # Reset corrective poseshapes if used
-        if context.window_manager.smplx_tool.smplx_corrective_poseshapes:
-            bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
-
-        # Get vertices with applied skin modifier
-        depsgraph = context.evaluated_depsgraph_get()
-        object_eval = obj.evaluated_get(depsgraph)
-        mesh_from_eval = object_eval.to_mesh()
-
-        # Get Blender vertices as numpy matrix
-        vertices_np = np.zeros((len(mesh_from_eval.vertices)*3), dtype=np.float)
-        mesh_from_eval.vertices.foreach_get("co", vertices_np)
-        vertices_matrix = np.reshape(vertices_np, (len(mesh_from_eval.vertices), 3))
-        object_eval.to_mesh_clear() # Remove temporary mesh
-
-        # Note: Current joint regressor uses vertices as input which results in slow numpy operation
-        joint_locations = j_regressor @ vertices_matrix
+        joint_locations = betas_to_joints @ betas + template_j
 
         # Set new bone joint locations
+        armature = obj.parent
         bpy.context.view_layer.objects.active = armature
         bpy.ops.object.mode_set(mode='EDIT')
 
@@ -476,19 +455,13 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
             bone.head = (0.0, 0.0, 0.0)
             bone.tail = (0.0, 0.0, 0.1)
 
-            bone_start = Vector(joint_locations[index])
+            # Convert SMPL-X joint locations to Blender joint locations
+            joint_location_smplx = joint_locations[index]
+            bone_start = Vector( (joint_location_smplx[0], -joint_location_smplx[2], joint_location_smplx[1]) )
             bone.translate(bone_start)
 
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.context.view_layer.objects.active = obj
-
-        # Restore pose
-        for pose_bone in armature.pose.bones:
-            pose_bone.rotation_quaternion = bone_rotations[pose_bone.name]
-
-        # Restore corrective poseshapes if used
-        if context.window_manager.smplx_tool.smplx_corrective_poseshapes:
-            bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
 
         return {'FINISHED'}
 

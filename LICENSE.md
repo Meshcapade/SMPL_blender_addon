@@ -4,7 +4,7 @@
   + Licensed under SMPL-X Model License
     + https://smpl-x.is.tue.mpg.de/modellicense
 
-+ Model data (data/*.blend, data/*.npz):
++ Model data (data/*.blend, data/*.npz, data/*.json):
   + Copyright Max Planck Institute for Intelligent Systems
   + Licensed under SMPL-X Model License
     + https://smpl-x.is.tue.mpg.de/modellicense
