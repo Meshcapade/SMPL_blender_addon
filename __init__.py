@@ -19,7 +19,7 @@
 bl_info = {
     "name": "SMPL-X for Blender",
     "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 4, 28),
+    "version": (2021, 5, 25),
     "blender": (2, 80, 0),
     "location": "Viewport > Right panel",
     "description": "SMPL-X for Blender",
@@ -116,7 +116,7 @@ class PG_SMPLXProperties(PropertyGroup):
     smplx_texture: EnumProperty(
         name = "",
         description = "SMPL-X model texture",
-        items = [ ("NONE", "None", ""), ("smplx_texture_f_alb.png", "Female", ""), ("smplx_texture_m_alb.png", "Male", ""), ("UV_GRID", "UV Grid", ""), ("COLOR_GRID", "Color Grid", "") ]
+        items = [ ("NONE", "None", ""), ("smplx_texture_f_alb.png", "Female", ""), ("smplx_texture_m_alb.png", "Male", ""), ("smplx_texture_rainbow.png", "Rainbow", ""), ("UV_GRID", "UV Grid", ""), ("COLOR_GRID", "Color Grid", "") ]
     )
 
     smplx_corrective_poseshapes: BoolProperty(
