@@ -1,98 +1,56 @@
-# SMPL-X Blender add-on license information
+This Software is provided as part of the SMPL Model Commercial or Trial Sublicense Agreement (“Master Agreement”) made by and between [Meshcapade GmbH](www.meshcapade.com) (“MESHCAPADE”), and you (“SUBLICENSEE”), each of whom hereinafter individually also called a "Party", or collectively called the "Parties". 
 
-+ Generated body mesh data using this add-on:
-  + Licensed under SMPL-X Model License
-    + https://smpl-x.is.tue.mpg.de/modellicense
+For further details, please see the Master Agreement, or contact us for more information at: [support@meshcapade.com](support@meshcapade.com)
 
-+ Model data (data/*.blend, data/*.npz, data/*.json):
-  + Copyright Max Planck Institute for Intelligent Systems
-  + Licensed under SMPL-X Model License
-    + https://smpl-x.is.tue.mpg.de/modellicense
+By downloading and/or using the Software, you acknowledge that you have read, understand, and agree to be bound by the terms and conditions laid out here. If any terms and conditions herein materially conflict with the terms and conditions agreed to in the Master Agreement concluded between the Parties, the terms of the Master Agreement shall apply.
 
-+ Textures:
-  + smplx_texture_f_alb.png, smplx_texture_m_alb.png
-    + Copyright Meshcapade GmbH (https://meshcapade.com/)
-  + smplx_texture_rainbow.png
-    + Copyright Max Planck Institute for Intelligent Systems
-  + Licensed under Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
-    + https://creativecommons.org/licenses/by-nc/4.0/
+### 1.  Definitions
+**1.1 “Software”** shall mean (a) the trained SMPL-Model (including without limitation the updates to SMPL+H and SMPL-X) and associated software as of the Effective Date, (b) sample Python language programs that demonstrate the use of the Model Software (“Sample Code”), and (c) documentation supporting and enabling the matters described in (a) and (b) and maintenance releases and updates provided by Meshcapade under the Master Agreement.
 
-+ Source code (*.py): 
-  + Licensed under GNU General Public License
-    + https://www.gnu.org/licenses/gpl-3.0.en.html
+The Software has been developed at the Max Planck Institute for Intelligent Systems (MPI) and is owned by and proprietary material of the Max-Planck-Gesellschaft zur Foerderung der Wissenschaften e.V. (MPG). The SMPL-Model specification is defined in the patent application WO2016207311A1 (2016-12-29), Skinned Multi-Person Linear Model listed in Exhibit A. MPG owns patent-pending technology disclosed in this patent application. MESHCAPADE has entered into a non-exclusive license agreement with Max-Planck-Innovation GmbH (MI), MPG’s technology transfer agency, for a non-exclusive license and the right to sublicense the use of the Software (the “MI/Meshcapade-License Agreement”).
 
-+ Commercial use: Please contact ps-license@tue.mpg.de
+**1.2 “SMPL-Model”** means SMPL: Skinned Multi-Person Linear Model (including without limitation the updates to SMPL+H and SMPL-X), a realistic representation of the human body that supports realistic changes in body shape and pose. SMPL-Model is learned from thousands of 3D body scans and is provided as male and female 3D models containing a 3D mesh, a joint skeleton based on linear blend skinning, and blend shapes for shape and pose deformations to represent realistic articulation for various body shapes. The SMPL-Model  includes the following software components:
 
----
+**Template Mesh:** a 3D mesh that defines the 3D topology (e.g. number of vertices, polygons, skeleton joints) used by the SMPL-Model.
 
-# SMPL-X Model License
-License
-Software Copyright License for non-commercial scientific research purposes
+**Shape Components:** 10 Identity-dependent shape descriptors represented as vectors of concatenated vertex offsets from the Template Mesh.
 
-Please read carefully the following terms and conditions and any accompanying documentation before you download and/or use the SMPL-X/SMPLify-X model, data and software, (the "Model & Software"), including 3D meshes, blend weights, blend shapes, textures, software, scripts, and animations. By downloading and/or using the Model & Software, you acknowledge that you have read these terms and conditions, understand them, and agree to be bound by them. If you do not agree with these terms and conditions, you must not download and/or use the Model & Software. Any infringement of the terms of this agreement will automatically terminate your rights under this License
+**Pose Components:** 207 Pose-dependent shape descriptors represented as vectors of concatenated vertex offsets from the Template Mesh.
 
+**Facial Expression Components:** 10 facial expression descriptors represented as vectors of concatenated vertex offsets from the Template Mesh.
 
-Ownership / Licensees
+**Face, Body and Hands' Pose parameters:** 30 body, 38 hands and 3 facial pose parameters represented as a vector of 3D skeleton joint positions.
 
-The Software and the associated materials has been developed at the Max Planck Institute for Intelligent Systems (hereinafter "MPI").
+**Model Software:** software to provide functionality to load the Shape and Pose Components, and a parametric function that uses the Components to generate 3D human meshes with varying identities in different poses.
 
-Any copyright or patent right is owned by and proprietary material of the Max-Planck-Gesellschaft zur Förderung der Wissenschaften e.V. (hereinafter “MPG”; MPI and MPG hereinafter collectively “Max-Planck” or “Licensor”).
+Any individual subset of the SMPL-Model created under the Master Agreement, which excludes the shape blendshapes or the tools to create 3D bodies using the shape blendshapes of the SMPL-Model, is known as a **“SMPL-Body”** (collectively, “SMPL-Bodies”), and is licensed under the Creative Commons Attribution 4.0 International License, as defined here:
+http://smpl.is.tue.mpg.de/license_body.
 
+### Grant of Rights
 
-License Grant
+**2.1 Sublicense Grant.** MESHCAPADE grants to SUBLICENSEE and its Affiliates during the term of the Master Agreement a non-exclusive, worldwide, non-sublicensable, non-transferable, royalty-free (but subject to payment under the Master Agreement) right and license under MESHCAPADE’s intellectual property rights to:
 
-Licensor grants you (Licensee) personally a single-user, non-exclusive, non-transferable, free of charge right:
+- make, use, lease, sell (directly or indirectly through multiple tiers of distributors and distribution channels), offer to sell, import, export, keep, supply, and otherwise dispose of and commercialize Integrated Products.
+- use, reproduce, distribute, transmit, and otherwise exploit the Software solely as part of and to facilitate or enable the exploitation of Integrated Products.
+- use, disclose, reproduce, distribute, transmit, make derivative works of and otherwise exploit the Sample Code to facilitate or enable the exploitation of Integrated Products.
 
-    To install the Model & Software on computers owned, leased or otherwise controlled by you and/or your organization;
-    To use the Model & Software for the sole purpose of performing non-commercial scientific research, non-commercial education, or non-commercial artistic projects;
-    To modify, adapt, translate or create derivative works based upon the Model & Software.
+For the sake of clarity, the license granted in this Section 2.1 does not permit any external use or disclosure of the Shape Components and Model Software; provided, however, that the Shape Components and Model Software may be integrated into SUBLICENSEE’S products and services that are provided externally so long as SUBLICENSEE takes reasonable steps in the design and making of its Integrated Products to prevent third parties from accessing or viewing the Shape Components and Model Software within the Integrated Products. For clarity, the rights granted above to SUBLICENSEE and its Affiliates include the right to:
 
-Any other use, in particular any use for commercial, pornographic, military, or surveillance, purposes is prohibited. This includes, without limitation, incorporation in a commercial product, use in a commercial service, or production of other artefacts for commercial purposes. The software may not be used to create fake, libelous, misleading, or defamatory content of any kind excluding analyses in peer-reviewed scientific research. The Software may not be reproduced, modified and/or made available in any form to any third party without Max-Planck’s prior written permission.
+- Download, copy, display, import, and use the Software and prepare derivative works of the Sample Code on computers owned, leased or otherwise controlled by SUBLICENSEE and/or its Affiliates;
+- Distribute the Software among developers employed by SUBLICENSEE and/or its Affiliates, provided that all such developers shall be bound by terms as restrictive as the terms of the Master Agreement;
+- Use the Software to train methods/algorithms/neural networks/etc. for commercial use of the trained system.
+- Use the Software to generate training data for machine learning methods for commercial use of the method.
+- Modify the Sample Code to create Derivative Works.
+- Create and externally distribute SMPL-Bodies created using the Software.
 
-The Software may not be used for pornographic purposes or to generate pornographic material whether commercial or not. This license also prohibits the use of the Software to train methods/algorithms/neural networks/etc. for commercial, pornographic, military, surveillance, or defamatory use of any kind. By downloading the Software, you agree not to reverse engineer it.
+Each of the foregoing being permitted uses by SUBLICENSEE and/or its Affiliates, and any product that results from the foregoing (subject to any restrictions set forth in the Master Agreement) being an Integrated Product.
 
+**2.2 Sublicense Restrictions.** The Software must not be used by SUBLICENSEE and/or its Affiliates to generate defamatory, harassing, pornographic, obscene, or racist material whether commercial or not. With the exception of independent contractors of SUBLICENSEE that are acting on behalf of SUBLICENSEE and bound by terms as restrictive as the terms of the Master Agreement, the Software must not be reproduced, modified and/or made available in any form to any third party without MESHCAPADE’s prior written permission. SUBLICENSEE must not and must restrict its independent contractors from, directly or indirectly, reverse engineering the Software. SUBLICENSEE shall not, directly or indirectly, attempt to reverse engineer the Shape Components, Pose Components or Model Software.
 
-No Distribution
+**2.3 Software Updates.** MESHCAPADE, at its discretion, and MESHCAPADE’s sole expense, may make available updates, enhancements, extensions, modifications and other changes to the Software. These changes, if any, may not necessarily include all existing software or new features that MESHCAPADE releases for newer or other services of MESHCAPADE. The terms of the Master Agreement will govern any changes provided by MESHCAPADE that replace and/or supplement the original Software, unless such changes are accompanied by a separate license in which case the terms of that license will govern.
 
-The Model & Software and the license herein granted shall not be copied, shared, distributed, re-sold, offered for re-sale, transferred or sub-licensed in whole or in part except that you may make one copy for archive purposes only.
+**2.4 Ownership.** SUBLICENSEE shall own and retain all rights, title and interest in and to any improvements, modifications or derivative works of the Sample Code created by or on behalf of SUBLICENSEE (“Derivative Works”), including but not limited to any annotations or labeling of the Sample Code. SUBLICENSEE shall also own and retain all rights, title and interest in and to any prototypes, algorithms, models, designs, ideas, drawings, notes, reports, documentation, specifications, hardware, software, products, services, data, materials or any other tangible or intangible items created by of for SUBLICENSEE in connection with or related to SUBLICENSEE’s use of the Software and related documentation.  For clarification, SUBLICENSEE is not obligated to disclose any Derivative Works to MESHCAPADE.
 
+**2.5 Publication with SMPL.** Please cite the related research project - this website lists the most up to date bibliographic information for citing SMPL: http://smpl.is.tue.mpg.de
 
-Disclaimer of Representations and Warranties
-
-You expressly acknowledge and agree that the Model & Software results from basic research, is provided “AS IS”, may contain errors, and that any use of the Model & Software is at your sole risk. LICENSOR MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND CONCERNING THE MODEL & SOFTWARE, NEITHER EXPRESS NOR IMPLIED, AND THE ABSENCE OF ANY LEGAL OR ACTUAL DEFECTS, WHETHER DISCOVERABLE OR NOT. Specifically, and not to limit the foregoing, licensor makes no representations or warranties (i) regarding the merchantability or fitness for a particular purpose of the Model & Software, (ii) that the use of the Model & Software will not infringe any patents, copyrights or other intellectual property rights of a third party, and (iii) that the use of the Model & Software will not cause any damage of any kind to you or a third party.
-
-
-Limitation of Liability
-
-Because this Model & Software License Agreement qualifies as a donation, according to Section 521 of the German Civil Code (Bürgerliches Gesetzbuch – BGB) Licensor as a donor is liable for intent and gross negligence only. If the Licensor fraudulently conceals a legal or material defect, they are obliged to compensate the Licensee for the resulting damage.
-Licensor shall be liable for loss of data only up to the amount of typical recovery costs which would have arisen had proper and regular data backup measures been taken. For the avoidance of doubt Licensor shall be liable in accordance with the German Product Liability Act in the event of product liability. The foregoing applies also to Licensor’s legal representatives or assistants in performance. Any further liability shall be excluded.
-Patent claims generated through the usage of the Model & Software cannot be directed towards the copyright holders.
-The Model & Software is provided in the state of development the licensor defines. If modified or extended by Licensee, the Licensor makes no claims about the fitness of the Model & Software and is not responsible for any problems such modifications cause.
-
-
-No Maintenance Services
-
-You understand and agree that Licensor is under no obligation to provide either maintenance services, update services, notices of latent defects, or corrections of defects with regard to the Model & Software. Licensor nevertheless reserves the right to update, modify, or discontinue the Model & Software at any time.
-
-Defects of the Model & Software must be notified in writing to the Licensor with a comprehensible description of the error symptoms. The notification of the defect should enable the reproduction of the error. The Licensee is encouraged to communicate any use, results, modification or publication.
-
-
-Publications using the Model & Software
-
-You acknowledge that the Model & Software is a valuable scientific resource and agree to appropriately reference the following paper in any publication making use of the Model & Software.
-
-Citation:
-
-@inproceedings{SMPL-X:2019,
-  title = {Expressive Body Capture: 3D Hands, Face, and Body from a Single Image},
-  author = {Pavlakos, Georgios and Choutas, Vasileios and Ghorbani, Nima and Bolkart, Timo and Osman, Ahmed A. A. and Tzionas, Dimitrios and Black, Michael J.},
-  booktitle = {Proceedings IEEE Conf. on Computer Vision and Pattern Recognition (CVPR)},
-  year = {2019}
-}
-
-
-Commercial licensing opportunities
-
-For commercial uses of the Model & Software, please send email to ps-license@tue.mpg.de
-
-This Agreement shall be governed by the laws of the Federal Republic of Germany except for the UN Sales Convention.
+**2.6 Media projects with SMPL.** When using SMPL in a media project please give credit to Max Planck Institute for Intelligent Systems. For example: SMPL was used for character animation courtesy of the Meshcapade GmbH.
