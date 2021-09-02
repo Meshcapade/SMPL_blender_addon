@@ -41,12 +41,17 @@ This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned mes
 - Batch convert OBJ or FBX UV formats
 
 ## Installation
+- Download the latest release zip, `smplx_blender_YYYYMMDD.zip`, do not unzip.
+- Within Blender (2.92+), under Edit -> Preferences navigate to the Add-ons tab
+- Click the Install button on the upper right, navigate to and select the downloaded zip file, and click 'Install Add-on'
+- Once loaded, check the box next to the now appeared add-on title to activate.
 
-1. Blender>Edit>Preferences>Add-ons>Install
-2. Select downloaded SMPL-X for Blender add-on ZIP file (`smplx_blender_addon-YYYYMMDD.zip`) and install
-3. Enable SMPL-X for Blender add-on
-4. Enable sidebar in 3D Viewport>View>Sidebar
-5. SMPL-X tool will show up in sidebar
+![image](https://user-images.githubusercontent.com/538382/131877148-3d65f453-13ef-4c47-b56f-fd008930937a.png)
+
+Enable sidebar in 3D Viewport>View>Sidebar, the tabs SMPL-X and Meshcapade Utilities should show along the sidebar.
+
+![image](https://user-images.githubusercontent.com/538382/131878699-df5b7fd1-9bbc-47ae-9cb4-8fd319727c9d.png)
+
 
 ## Make Addon Release
 
