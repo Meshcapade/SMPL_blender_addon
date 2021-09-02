@@ -41,7 +41,7 @@ This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned mes
 - Batch convert OBJ or FBX UV formats
 
 ## Installation
-- Download the latest release zip, `smplx_blender_YYYYMMDD.zip`, do not unzip.
+- Download [the latest release](https://github.com/Meshcapade/SMPL_blender_addon/releases/latest) zip file, `smplx_blender_YYYYMMDD.zip`. Do not unzip.
 - Within Blender (2.92+), under Edit -> Preferences navigate to the Add-ons tab
 - Click the Install button on the upper right, navigate to and select the downloaded zip file, and click 'Install Add-on'
 - Once loaded, check the box next to the now appeared add-on title to activate.
