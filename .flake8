@@ -1,0 +1,8 @@
+[flake8]
+max-line-length = 120
+
+per-file-ignores =
+  smplx_blender/properties.py:F821,F722
+  smplx_blender/operators.py:F821,F722
+# F821 produces "'undefined name 'XXX'" when we write things like 'member_variable: bpy.props.StringProperty(subtype="XXX")'
+# F722 produces "syntax error in forward annotation 'XXX'" when we write things like  'member_variable: bpy.props.IntProperty(name="XXX")'

@@ -1,141 +1,30 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
-
-bl_info = {
-    "name": "SMPL-X for Blender",
-    "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems",
-    "version": (2021, 5, 25),
-    "blender": (2, 80, 0),
-    "location": "Viewport > Right panel",
-    "description": "SMPL-X for Blender",
-    "wiki_url": "https://smpl-x.is.tue.mpg.de/",
-    "category": "SMPL-X"}
-
 import bpy
-from bpy_extras.io_utils import ImportHelper,ExportHelper # ImportHelper/ExportHelper is a helper class, defines filename and invoke() function which calls the file selector.
-from mathutils import Vector, Quaternion
-from bpy.props import ( BoolProperty, EnumProperty, FloatProperty, PointerProperty, StringProperty )
-from bpy.types import ( PropertyGroup )
-
-import json
-from math import radians
-import numpy as np
 import os
-import pickle
+import numpy as np
+import json
+from bpy.props import (
+    BoolProperty,
+    StringProperty,
+    CollectionProperty,
+)
+from bpy_extras.io_utils import (
+    ImportHelper,
+    ExportHelper,
+)
+from .globals import (
+    SMPLX_MODELFILE,
+    NUM_SMPLX_BODYJOINTS,
+    NUM_SMPLX_HANDJOINTS,
+    NUM_SMPLX_JOINTS,
+    SMPLX_JOINT_NAMES,
+)
+from .blender import (
+    set_pose_from_rodrigues,
+    rodrigues_from_pose,
+)
+from mathutils import Vector, Quaternion
+from math import radians
 
-# SMPL-X globals
-SMPLX_MODELFILE = "smplx_model_20210421.blend"
-
-SMPLX_JOINT_NAMES = [
-    'pelvis','left_hip','right_hip','spine1','left_knee','right_knee','spine2','left_ankle','right_ankle','spine3', 'left_foot','right_foot','neck','left_collar','right_collar','head','left_shoulder','right_shoulder','left_elbow', 'right_elbow','left_wrist','right_wrist',
-    'jaw','left_eye_smplhf','right_eye_smplhf','left_index1','left_index2','left_index3','left_middle1','left_middle2','left_middle3','left_pinky1','left_pinky2','left_pinky3','left_ring1','left_ring2','left_ring3','left_thumb1','left_thumb2','left_thumb3','right_index1','right_index2','right_index3','right_middle1','right_middle2','right_middle3','right_pinky1','right_pinky2','right_pinky3','right_ring1','right_ring2','right_ring3','right_thumb1','right_thumb2','right_thumb3'
-]
-NUM_SMPLX_JOINTS = len(SMPLX_JOINT_NAMES)
-NUM_SMPLX_BODYJOINTS = 21
-NUM_SMPLX_HANDJOINTS = 15
-# End SMPL-X globals
-
-def rodrigues_from_pose(armature, bone_name):
-    # Use quaternion mode for all bone rotations
-    if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
-        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
-
-    quat = armature.pose.bones[bone_name].rotation_quaternion
-    (axis, angle) = quat.to_axis_angle()
-    rodrigues = axis
-    rodrigues.normalize()
-    rodrigues = rodrigues * angle
-    return rodrigues
-
-def update_corrective_poseshapes(self, context):
-    if self.smplx_corrective_poseshapes:
-        bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
-    else:
-        bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
-
-def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=None):
-    rod = Vector((rodrigues[0], rodrigues[1], rodrigues[2]))
-    angle_rad = rod.length
-    axis = rod.normalized()
-
-    if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
-        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
-
-    quat = Quaternion(axis, angle_rad)
-
-    if rodrigues_reference is None:
-        armature.pose.bones[bone_name].rotation_quaternion = quat
-    else:
-        # SMPL-X is adding the reference rodrigues rotation to the relaxed hand rodrigues rotation, so we have to do the same here.
-        # This means that pose values for relaxed hand model cannot be interpreted as rotations in the local joint coordinate system of the relaxed hand.
-        # https://github.com/vchoutas/smplx/blob/f4206853a4746139f61bdcf58571f2cea0cbebad/smplx/body_models.py#L1190
-        #   full_pose += self.pose_mean
-        rod_reference = Vector((rodrigues_reference[0], rodrigues_reference[1], rodrigues_reference[2]))
-        rod_result = rod + rod_reference
-        angle_rad_result = rod_result.length
-        axis_result = rod_result.normalized()
-        quat_result = Quaternion(axis_result, angle_rad_result)
-        armature.pose.bones[bone_name].rotation_quaternion = quat_result
-
-        """
-        rod_reference = Vector((rodrigues_reference[0], rodrigues_reference[1], rodrigues_reference[2]))
-        angle_rad_reference = rod_reference.length
-        axis_reference = rod_reference.normalized()
-        quat_reference = Quaternion(axis_reference, angle_rad_reference)
-
-        # Rotate first into reference pose and then add the target pose
-        armature.pose.bones[bone_name].rotation_quaternion = quat_reference @ quat
-        """
-    return
-
-# Property groups for UI
-class PG_SMPLXProperties(PropertyGroup):
-
-    smplx_gender: EnumProperty(
-        name = "Model",
-        description = "SMPL-X model",
-        items = [ ("female", "Female", ""), ("male", "Male", ""), ("neutral", "Neutral", "") ]
-    )
-
-    smplx_texture: EnumProperty(
-        name = "",
-        description = "SMPL-X model texture",
-        items = [ ("NONE", "None", ""), ("smplx_texture_f_alb.png", "Female", ""), ("smplx_texture_m_alb.png", "Male", ""), ("smplx_texture_rainbow.png", "Rainbow", ""), ("UV_GRID", "UV Grid", ""), ("COLOR_GRID", "Color Grid", "") ]
-    )
-
-    smplx_corrective_poseshapes: BoolProperty(
-        name = "Corrective Pose Shapes",
-        description = "Enable/disable corrective pose shapes of SMPL-X model",
-        update = update_corrective_poseshapes,
-        default = True
-    )
-
-    smplx_handpose: EnumProperty(
-        name = "",
-        description = "SMPL-X hand pose",
-        items = [ ("relaxed", "Relaxed", ""), ("flat", "Flat", "") ]
-    )
-
-    smplx_export_setting_shape_keys: EnumProperty(
-        name = "",
-        description = "Blend shape export settings",
-        items = [ ("SHAPE_POSE", "All: Shape + Posecorrectives", "Export shape keys for body shape and pose correctives"), ("SHAPE", "Reduced: Shape space only", "Export only shape keys for body shape"), ("NONE", "None: Apply shape space", "Do not export any shape keys, shape keys for body shape will be baked into mesh") ],
-    )
 
 class SMPLXAddGender(bpy.types.Operator):
     bl_idname = "scene.smplx_add_gender"
@@ -149,9 +38,10 @@ class SMPLXAddGender(bpy.types.Operator):
             # Enable button only if in Object Mode
             if (context.active_object is None) or (context.active_object.mode == 'OBJECT'):
                 return True
-            else: 
+            else:
                 return False
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
         gender = context.window_manager.smplx_tool.smplx_gender
@@ -174,8 +64,9 @@ class SMPLXAddGender(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 class SMPLXSetTexture(bpy.types.Operator):
-    bl_idname = "scene.smplx_set_texture"
+    bl_idname = "object.smplx_set_texture"
     bl_label = "Set"
     bl_description = ("Set selected texture")
     bl_options = {'REGISTER', 'UNDO'}
@@ -188,7 +79,8 @@ class SMPLXSetTexture(bpy.types.Operator):
                 return True
             else:
                 return False
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
         texture = context.window_manager.smplx_tool.smplx_texture
@@ -251,12 +143,94 @@ class SMPLXSetTexture(bpy.types.Operator):
                 links.new(node_texture.outputs[0], node_shader.inputs[0])
 
         # Switch viewport shading to Material Preview to show texture
-        bpy.context.space_data.shading.type = 'MATERIAL'
+        if bpy.context.space_data:
+            if bpy.context.space_data.type == 'VIEW_3D':
+                bpy.context.space_data.shading.type = 'MATERIAL'
 
         return {'FINISHED'}
 
-class SMPLXRandomShapes(bpy.types.Operator):
-    bl_idname = "object.smplx_random_shapes"
+
+class SMPLXMeasurementsToShape(bpy.types.Operator):
+    bl_idname = "object.smplx_measurements_to_shape"
+    bl_label = "Measurements To Shape"
+    bl_description = ("Calculate and set shape parameters for specified measurements")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    betas_regressor_female = None
+    betas_regressor_male = None
+    # betas_regressor_neutral = None
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if mesh is active object
+            return ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE'))
+        except Exception:
+            return False
+
+    def execute(self, context):
+        obj = bpy.context.object
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        if self.betas_regressor_female is None:
+            path = os.path.dirname(os.path.realpath(__file__))
+            regressor_path = os.path.join(path, "data", "smplx_measurements_to_betas_female.json")
+            with open(regressor_path) as f:
+                data = json.load(f)
+                self.betas_regressor_female = (
+                    np.asarray(data["A"]).reshape(-1, 2),
+                    np.asarray(data["B"]).reshape(-1, 1),
+                )
+
+        if self.betas_regressor_male is None:
+            path = os.path.dirname(os.path.realpath(__file__))
+            regressor_path = os.path.join(path, "data", "smplx_measurements_to_betas_male.json")
+            with open(regressor_path) as f:
+                data = json.load(f)
+                self.betas_regressor_male = (
+                    np.asarray(data["A"]).reshape(-1, 2),
+                    np.asarray(data["B"]).reshape(-1, 1),
+                )
+
+        if "female" in obj.name:
+            (A, B) = self.betas_regressor_female
+        elif "male" in obj.name:
+            (A, B) = self.betas_regressor_male
+        else:
+            # (A, B) = self.betas_regressor_neutral
+            self.report({"ERROR"}, "No measurements-to-betas regressor available for neutral model")
+            return {"CANCELLED"}
+
+        # Calculate beta values from measurements
+        height_m = context.window_manager.smplx_tool.smplx_height
+        height_cm = height_m * 100.0
+        weight_kg = context.window_manager.smplx_tool.smplx_weight
+
+        v_root = pow(weight_kg, 1.0/3.0)
+        measurements = np.asarray([[height_cm], [v_root]])
+        betas = A @ measurements + B
+
+        num_betas = betas.shape[0]
+        for i in range(num_betas):
+            name = f"Shape{i:03d}"
+            key_block = obj.data.shape_keys.key_blocks[name]
+            value = betas[i, 0]
+
+            # Adjust key block min/max range to value
+            if value < key_block.slider_min:
+                key_block.slider_min = value
+            elif value > key_block.slider_max:
+                key_block.slider_max = value
+
+            key_block.value = value
+
+        bpy.ops.object.smplx_update_joint_locations('EXEC_DEFAULT')
+
+        return {'FINISHED'}
+
+
+class SMPLXRandomShape(bpy.types.Operator):
+    bl_idname = "object.smplx_random_shape"
     bl_label = "Random"
     bl_description = ("Sets all shape blend shape keys to a random value")
     bl_options = {'REGISTER', 'UNDO'}
@@ -266,7 +240,8 @@ class SMPLXRandomShapes(bpy.types.Operator):
         try:
             # Enable button only if mesh is active object
             return context.object.type == 'MESH'
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -279,8 +254,9 @@ class SMPLXRandomShapes(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class SMPLXResetShapes(bpy.types.Operator):
-    bl_idname = "object.smplx_reset_shapes"
+
+class SMPLXResetShape(bpy.types.Operator):
+    bl_idname = "object.smplx_reset_shape"
     bl_label = "Reset"
     bl_description = ("Resets all blend shape keys for shape")
     bl_options = {'REGISTER', 'UNDO'}
@@ -290,7 +266,8 @@ class SMPLXResetShapes(bpy.types.Operator):
         try:
             # Enable button only if mesh is active object
             return context.object.type == 'MESH'
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -303,8 +280,9 @@ class SMPLXResetShapes(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class SMPLXRandomExpressionShapes(bpy.types.Operator):
-    bl_idname = "object.smplx_random_expression_shapes"
+
+class SMPLXRandomExpressionShape(bpy.types.Operator):
+    bl_idname = "object.smplx_random_expression_shape"
     bl_label = "Random Face Expression"
     bl_description = ("Sets all face expression blend shape keys to a random value")
     bl_options = {'REGISTER', 'UNDO'}
@@ -314,7 +292,8 @@ class SMPLXRandomExpressionShapes(bpy.types.Operator):
         try:
             # Enable button only if mesh is active object
             return context.object.type == 'MESH'
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -325,8 +304,9 @@ class SMPLXRandomExpressionShapes(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class SMPLXResetExpressionShapes(bpy.types.Operator):
-    bl_idname = "object.smplx_reset_expression_shapes"
+
+class SMPLXResetExpressionShape(bpy.types.Operator):
+    bl_idname = "object.smplx_reset_expression_shape"
     bl_label = "Reset"
     bl_description = ("Resets all blend shape keys for face expression")
     bl_options = {'REGISTER', 'UNDO'}
@@ -336,7 +316,8 @@ class SMPLXResetExpressionShapes(bpy.types.Operator):
         try:
             # Enable button only if mesh is active object
             return context.object.type == 'MESH'
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -346,6 +327,7 @@ class SMPLXResetExpressionShapes(bpy.types.Operator):
                 key_block.value = 0.0
 
         return {'FINISHED'}
+
 
 class SMPLXSnapGroundPlane(bpy.types.Operator):
     bl_idname = "object.smplx_snap_ground_plane"
@@ -358,15 +340,16 @@ class SMPLXSnapGroundPlane(bpy.types.Operator):
         try:
             # Enable button only if mesh or armature is active object
             return ((context.object.type == 'MESH') or (context.object.type == 'ARMATURE'))
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
         bpy.ops.object.mode_set(mode='OBJECT')
 
         obj = bpy.context.object
         if obj.type == 'ARMATURE':
-                    armature = obj
-                    obj = bpy.context.object.children[0]
+            armature = obj
+            obj = bpy.context.object.children[0]
         else:
             armature = obj.parent
 
@@ -379,13 +362,15 @@ class SMPLXSnapGroundPlane(bpy.types.Operator):
         matrix_world = obj.matrix_world
         vertices_world = [matrix_world @ vertex.co for vertex in mesh_from_eval.vertices]
         z_min = (min(vertices_world, key=lambda item: item.z)).z
-        object_eval.to_mesh_clear() # Remove temporary mesh
+        object_eval.to_mesh_clear()  # Remove temporary mesh
 
         # Adjust height of armature so that lowest vertex is on ground plane.
-        # Do not apply new armature location transform so that we are later able to show loaded poses at their desired height.
+        # Do not apply new armature location transform so that we are later able to
+        # show loaded poses at their desired height.
         armature.location.z = armature.location.z - z_min
 
         return {'FINISHED'}
+
 
 class SMPLXUpdateJointLocations(bpy.types.Operator):
     bl_idname = "object.smplx_update_joint_locations"
@@ -402,7 +387,8 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
         try:
             # Enable button only if mesh is active object
             return ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE'))
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -414,7 +400,7 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
             with open(regressor_path) as f:
                 data = json.load(f)
                 self.j_regressor_female = (np.asarray(data["betasJ_regr"]), np.asarray(data["template_J"]))
-    
+
         if self.j_regressor_male is None:
             path = os.path.dirname(os.path.realpath(__file__))
             regressor_path = os.path.join(path, "data", "smplx_betas_to_joints_male.json")
@@ -457,13 +443,18 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
 
             # Convert SMPL-X joint locations to Blender joint locations
             joint_location_smplx = joint_locations[index]
-            bone_start = Vector( (joint_location_smplx[0], -joint_location_smplx[2], joint_location_smplx[1]) )
+            bone_start = Vector((
+                joint_location_smplx[0],
+                -joint_location_smplx[2],
+                joint_location_smplx[1],
+            ))
             bone.translate(bone_start)
 
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.context.view_layer.objects.active = obj
 
         return {'FINISHED'}
+
 
 class SMPLXSetPoseshapes(bpy.types.Operator):
     bl_idname = "object.smplx_set_poseshapes"
@@ -475,8 +466,12 @@ class SMPLXSetPoseshapes(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if mesh is active object and parent is armature
-            return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
-        except: return False
+            return (
+                ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or
+                (context.object.type == 'ARMATURE')
+            )
+        except Exception:
+            return False
 
     # https://github.com/gulvarol/surreal/blob/master/datageneration/main_part1.py
     # Computes rotation matrix through Rodrigues formula as in cv2.Rodrigues
@@ -484,9 +479,11 @@ class SMPLXSetPoseshapes(bpy.types.Operator):
         theta = np.linalg.norm(rotvec)
         r = (rotvec/theta).reshape(3, 1) if theta > 0. else rotvec
         cost = np.cos(theta)
-        mat = np.asarray([[0, -r[2], r[1]],
-                        [r[2], 0, -r[0]],
-                        [-r[1], r[0], 0]])
+        mat = np.asarray([
+            [0, -r[2], r[1]],
+            [r[2], 0, -r[0]],
+            [-r[1], r[0], 0],
+        ])
         return(cost*np.eye(3) + (1-cost)*r.dot(r.T) + np.sin(theta)*mat)
 
     # https://github.com/gulvarol/surreal/blob/master/datageneration/main_part1.py
@@ -529,6 +526,7 @@ class SMPLXSetPoseshapes(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 class SMPLXResetPoseshapes(bpy.types.Operator):
     bl_idname = "object.smplx_reset_poseshapes"
     bl_label = "Reset"
@@ -539,8 +537,12 @@ class SMPLXResetPoseshapes(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if mesh is active object and parent is armature
-            return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
-        except: return False
+            return (
+                ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or
+                (context.object.type == 'ARMATURE')
+            )
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -554,6 +556,7 @@ class SMPLXResetPoseshapes(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 class SMPLXSetHandpose(bpy.types.Operator):
     bl_idname = "object.smplx_set_handpose"
     bl_label = "Set"
@@ -566,8 +569,12 @@ class SMPLXSetHandpose(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if mesh or armature is active object
-            return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
-        except: return False
+            return (
+                ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or
+                (context.object.type == 'ARMATURE')
+            )
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -591,11 +598,11 @@ class SMPLXSetHandpose(bpy.types.Operator):
 
         (left_hand_pose, right_hand_pose) = self.hand_poses[hand_pose_name]
 
-        hand_pose = np.concatenate( (left_hand_pose, right_hand_pose) ).reshape(-1, 3)
+        hand_pose = np.concatenate((left_hand_pose, right_hand_pose)).reshape(-1, 3)
 
         hand_joint_start_index = 1 + NUM_SMPLX_BODYJOINTS + 3
         for index in range(2 * NUM_SMPLX_HANDJOINTS):
-            pose_rodrigues = hand_pose[index]            
+            pose_rodrigues = hand_pose[index]
             bone_name = SMPLX_JOINT_NAMES[index + hand_joint_start_index]
             set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
@@ -604,6 +611,7 @@ class SMPLXSetHandpose(bpy.types.Operator):
             bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
 
         return {'FINISHED'}
+
 
 class SMPLXWritePose(bpy.types.Operator):
     bl_idname = "object.smplx_write_pose"
@@ -616,7 +624,8 @@ class SMPLXWritePose(bpy.types.Operator):
         try:
             # Enable button only if mesh or armature is active object
             return (context.object.type == 'MESH') or (context.object.type == 'ARMATURE')
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -640,6 +649,7 @@ class SMPLXWritePose(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 class SMPLXResetPose(bpy.types.Operator):
     bl_idname = "object.smplx_reset_pose"
     bl_label = "Reset Pose"
@@ -650,8 +660,12 @@ class SMPLXResetPose(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if mesh is active object
-            return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
-        except: return False
+            return (
+                ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or
+                (context.object.type == 'ARMATURE')
+            )
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -670,6 +684,7 @@ class SMPLXResetPose(bpy.types.Operator):
         bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
 
         return {'FINISHED'}
+
 
 class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
     bl_idname = "object.smplx_load_pose"
@@ -694,8 +709,12 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
     def poll(cls, context):
         try:
             # Enable button only if mesh or armature is active object
-            return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
-        except: return False
+            return (
+                ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or
+                (context.object.type == 'ARMATURE')
+            )
+        except Exception:
+            return False
 
     def execute(self, context):
         obj = bpy.context.object
@@ -705,7 +724,7 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
         else:
             armature = obj
             obj = armature.children[0]
-            context.view_layer.objects.active = obj # mesh needs to be active object for recalculating joint locations
+            context.view_layer.objects.active = obj  # mesh needs to be active object for recalculating joint locations
 
         if self.hand_pose_relaxed is None:
             path = os.path.dirname(os.path.realpath(__file__))
@@ -713,7 +732,7 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             with np.load(data_path, allow_pickle=True) as data:
                 hand_poses = data["hand_poses"].item()
                 (left_hand_pose, right_hand_pose) = hand_poses["relaxed"]
-                self.hand_pose_relaxed = np.concatenate( (left_hand_pose, right_hand_pose) ).reshape(-1, 3)
+                self.hand_pose_relaxed = np.concatenate((left_hand_pose, right_hand_pose)).reshape(-1, 3)
 
         print("Loading: " + self.filepath)
 
@@ -721,8 +740,8 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
         global_orient = None
         body_pose = None
         jaw_pose = None
-        #leye_pose = None
-        #reye_pose = None
+        # leye_pose = None
+        # reye_pose = None
         left_hand_pose = None
         right_hand_pose = None
         betas = None
@@ -739,14 +758,13 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             body_pose = np.array(data["body_pose"])
             if body_pose.shape != (1, NUM_SMPLX_BODYJOINTS * 3):
                 print(f"Invalid body pose dimensions: {body_pose.shape}")
-                body_data = None
                 return {'CANCELLED'}
 
             body_pose = np.array(data["body_pose"]).reshape(NUM_SMPLX_BODYJOINTS, 3)
 
             jaw_pose = np.array(data["jaw_pose"]).reshape(3)
-            #leye_pose = np.array(data["leye_pose"]).reshape(3)
-            #reye_pose = np.array(data["reye_pose"]).reshape(3)
+            # leye_pose = np.array(data["leye_pose"]).reshape(3)
+            # reye_pose = np.array(data["reye_pose"]).reshape(3)
             left_hand_pose = np.array(data["left_hand_pose"]).reshape(-1, 3)
             right_hand_pose = np.array(data["right_hand_pose"]).reshape(-1, 3)
 
@@ -771,7 +789,7 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
 
         for index in range(NUM_SMPLX_BODYJOINTS):
             pose_rodrigues = body_pose[index]
-            bone_name = SMPLX_JOINT_NAMES[index + 1] # body pose starts with left_hip
+            bone_name = SMPLX_JOINT_NAMES[index + 1]  # body pose starts with left_hip
             set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
         set_pose_from_rodrigues(armature, "jaw", jaw_pose)
@@ -810,6 +828,7 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
 
         return {'FINISHED'}
 
+
 class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
     bl_idname = "object.smplx_export_unity_fbx"
     bl_label = "Export Unity FBX"
@@ -824,7 +843,8 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
         try:
             # Enable button only if mesh is active object
             return (context.object.type == 'MESH')
-        except: return False
+        except Exception:
+            return False
 
     def execute(self, context):
 
@@ -843,7 +863,8 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
         skinned_mesh = bpy.context.object
         armature = skinned_mesh.parent
 
-        # Apply armature object location to armature root bone and skinned mesh so that armature and skinned mesh are at origin before export
+        # Apply armature object location to armature root bone and skinned mesh so
+        # that armature and skinned mesh are at origin before export
         context.view_layer.objects.active = armature
         context.view_layer.objects.active = armature
         armature_offset = Vector(armature.location)
@@ -857,7 +878,7 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
         context.view_layer.objects.active = skinned_mesh
         mesh_location = Vector(skinned_mesh.location)
         skinned_mesh.location = mesh_location + armature_offset
-        bpy.ops.object.transform_apply(location = True)
+        bpy.ops.object.transform_apply(location=True)
 
         # Reset pose
         bpy.ops.object.smplx_reset_pose('EXEC_DEFAULT')
@@ -875,7 +896,7 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
                     if bpy.context.object.active_shape_key.name.startswith('Pose'):
                         bpy.ops.object.shape_key_remove(all=False)
                     else:
-                        current_shape_key_index = current_shape_key_index + 1        
+                        current_shape_key_index = current_shape_key_index + 1
 
         if export_shape_keys == 'NONE':
             # Bake and remove shape keys
@@ -890,21 +911,22 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
             for count in range(0, num_shape_keys):
                 bpy.ops.object.shape_key_remove(all=False)
 
-        # Model (skeleton and skinned mesh) needs to have rotation of (90, 0, 0) when exporting so that it will have rotation (0, 0, 0) when imported into Unity
+        # Model (skeleton and skinned mesh) needs to have rotation of (90, 0, 0) when
+        # exporting so that it will have rotation (0, 0, 0) when imported into Unity
         bpy.ops.object.mode_set(mode='OBJECT')
 
         bpy.ops.object.select_all(action='DESELECT')
         skinned_mesh.select_set(True)
         skinned_mesh.rotation_euler = (radians(-90), 0, 0)
         bpy.context.view_layer.objects.active = skinned_mesh
-        bpy.ops.object.transform_apply(rotation = True)
+        bpy.ops.object.transform_apply(rotation=True)
         skinned_mesh.rotation_euler = (radians(90), 0, 0)
         skinned_mesh.select_set(False)
 
         armature.select_set(True)
         armature.rotation_euler = (radians(-90), 0, 0)
         bpy.context.view_layer.objects.active = armature
-        bpy.ops.object.transform_apply(rotation = True)
+        bpy.ops.object.transform_apply(rotation=True)
         armature.rotation_euler = (radians(90), 0, 0)
 
         # Select armature and skinned mesh for export
@@ -913,8 +935,10 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
         # Rename armature and skinned mesh to not contain Blender copy suffix
         if "female" in skinned_mesh.name:
             gender = "female"
-        else:
+        elif "male" in skinned_mesh.name:
             gender = "male"
+        else:
+            gender = "neutral"
 
         target_mesh_name = "SMPLX-mesh-%s" % gender
         target_armature_name = "SMPLX-%s" % gender
@@ -927,7 +951,12 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
             bpy.data.objects[target_armature_name].name = "SMPLX-temp-armature"
         armature.name = target_armature_name
 
-        bpy.ops.export_scene.fbx(filepath=self.filepath, use_selection=True, apply_scale_options="FBX_SCALE_ALL", add_leaf_bones=False)
+        bpy.ops.export_scene.fbx(
+            filepath=self.filepath,
+            use_selection=True,
+            apply_scale_options="FBX_SCALE_ALL",
+            add_leaf_bones=False,
+        )
 
         print("Exported: " + self.filepath)
 
@@ -949,148 +978,236 @@ class SMPLXExportUnityFBX(bpy.types.Operator, ExportHelper):
 
         return {'FINISHED'}
 
-class SMPLX_PT_Model(bpy.types.Panel):
-    bl_label = "SMPL-X Model"
-    bl_category = "SMPL-X"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
 
-    def draw(self, context):
+class SMPLExecuteConvertUV(bpy.types.Operator):
+    bl_idname = "object.smpl_execute_convert_uv"
+    bl_label = "Convert UVs"
+    bl_description = ("Convert the source SMPL files with target UV")
+    bl_options = {'REGISTER', 'UNDO'}
 
-        layout = self.layout
-        col = layout.column(align=True)
-        
-        row = col.row(align=True)
-        col.prop(context.window_manager.smplx_tool, "smplx_gender")
-        col.operator("scene.smplx_add_gender", text="Add")
+    @classmethod
+    def poll(cls, context):
+        num_source_objs = len(context.window_manager.smpl_tool.smpl_uv_source_objs)
+        num_source_fbxs = len(context.window_manager.smpl_tool.smpl_uv_source_fbxs)
+        num_source_items = num_source_objs + num_source_fbxs
+        output_dir = context.window_manager.smpl_tool.smpl_uv_output_dir
+        try:
+            return num_source_items > 0 and output_dir
+        except Exception:
+            return False
 
-        col.separator()
-        col.label(text="Texture:")
-        row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.prop(context.window_manager.smplx_tool, "smplx_texture")
-        split.operator("scene.smplx_set_texture", text="Set")
+    def execute(self, context):
+        from .blender import (
+            import_obj,
+            import_fbx,
+            create_collection,
+            move_object_to_collection,
+            destroy_collection,
+            transfer_uv,
+            change_active_collection,
+            export_object,
+        )
+        from .globals import (
+            RESOLUTIONS,
+            FBX_TYPE,
+            OBJ_TYPE,
+        )
+        from .utils import (
+            get_uv_obj_path,
+        )
 
-class SMPLX_PT_Shape(bpy.types.Panel):
-    bl_label = "Shape"
-    bl_category = "SMPL-X"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
+        # Context variables
+        wm = bpy.context.window_manager
+        smpl_tool = wm.smpl_tool
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column(align=True)
+        uv_type = smpl_tool.smpl_uv_type
+        output_dir = smpl_tool.smpl_uv_output_dir
 
-        row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.operator("object.smplx_random_shapes")
-        split.operator("object.smplx_reset_shapes")
-        col.separator()
+        # Gathering the source items into one list
+        source_objs = smpl_tool.smpl_uv_source_objs
+        source_fbxs = smpl_tool.smpl_uv_source_fbxs
+        source_items = (
+            list((o, OBJ_TYPE) for o in source_objs) +
+            list((f, FBX_TYPE) for f in source_fbxs)
+        )
 
-        col.operator("object.smplx_snap_ground_plane")
-        col.separator()
+        # Get required uv template paths
+        uv_template_type_res_path_tuples = [
+            (uv_type, res, get_uv_obj_path(uv_type=uv_type, resolution=res))
+            for res in RESOLUTIONS
+        ]
 
-        col.operator("object.smplx_update_joint_locations")
-        col.separator()
-        row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.operator("object.smplx_random_expression_shapes")
-        split.operator("object.smplx_reset_expression_shapes")
+        # Load template OBJs into collection
+        uv_template_collection = create_collection(name="UV Templates")
 
-class SMPLX_PT_Pose(bpy.types.Panel):
-    bl_label = "Pose"
-    bl_category = "SMPL-X"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
+        # Create lookup dictionaries for the UV mesh templates
+        UV_RES_OBJS = {}
+        UV_RES_VERTEX_MAPPING = {}
+        for (uv_type, res, uv_obj_path) in uv_template_type_res_path_tuples:
+            uv_obj = import_obj(uv_obj_path)
+            move_object_to_collection(uv_obj, uv_template_collection)
+            UV_RES_OBJS[res] = uv_obj
+            num_verts = len(uv_obj.data.vertices)
+            UV_RES_VERTEX_MAPPING[num_verts] = res
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column(align=True)
+        # Percentage progress on mouse
+        step_size = 100.0 / len(source_items)
+        wm.progress_begin(0.0, 100.0)
 
-        col.prop(context.window_manager.smplx_tool, "smplx_corrective_poseshapes")
-        col.separator()
-        col.operator("object.smplx_set_poseshapes")
+        for i, (item, item_type) in enumerate(source_items):
+            # Progress mouse indicator
+            wm.progress_update(i * step_size)
 
-        col.separator()
-        col.label(text="Hand Pose:")
-        row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.prop(context.window_manager.smplx_tool, "smplx_handpose")
-        split.operator("object.smplx_set_handpose", text="Set")
+            src_path = item.name
+            src_dir, src_filename = os.path.split(src_path)
+            dst_path = os.path.join(output_dir, src_filename)
 
-        col.separator()
-        col.operator("object.smplx_write_pose")
-        col.separator()
-        col.operator("object.smplx_load_pose")
+            # For cleanup purposes, having these operations take place in a new collection
+            scratch_collection = create_collection(name="Scratch")
+            change_active_collection(collection=scratch_collection)
 
-class SMPLX_PT_Export(bpy.types.Panel):
-    bl_label = "Export"
-    bl_category = "SMPL-X"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
+            # Load src object and get resolution
+            if item_type == OBJ_TYPE:
+                src_obj = import_obj(src_path)
+                src_mesh_obj = src_obj
+            elif item_type == FBX_TYPE:
+                src_obj = import_fbx(src_path)
+                # If root object is an armature (typical for a rigged FBX asset), get the associated mesh
+                if src_obj.type == 'ARMATURE':
+                    src_mesh_obj = next(child for child in src_obj.children if child.type == 'MESH')
+                elif src_obj.type == 'MESH':
+                    src_mesh_obj = src_obj
+                else:
+                    # Imported FBX not valid
+                    print("Imported FBX does not have a mesh object, skipping")
+                    destroy_collection(collection=scratch_collection)
+                    continue
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column(align=True)
+            # Determine the resolution of the imported asset
+            num_src_vertices = len(src_mesh_obj.data.vertices)
+            if num_src_vertices in UV_RES_VERTEX_MAPPING:
+                resolution = UV_RES_VERTEX_MAPPING[num_src_vertices]
+            else:
+                # Imported object not valid
+                print("Imported object '{}' has invalid vertex count of {}, skipping".format(
+                    src_obj.name,
+                    num_src_vertices,
+                ))
+                destroy_collection(collection=scratch_collection)
+                continue
 
-        col.label(text="Shape Keys (Blend Shapes):")
-        col.prop(context.window_manager.smplx_tool, "smplx_export_setting_shape_keys")
-        col.separator()
-        col.separator()
+            # Target UV mesh with matching resolution
+            target_uv_mesh_obj = UV_RES_OBJS[resolution]
 
-        col.operator("object.smplx_export_unity_fbx")
-        col.separator()
+            print("Transferring {} resolution '{}' type UV map to {} '{}'".format(
+                resolution,
+                uv_type,
+                item_type,
+                src_obj.name,
+            ))
+            transfer_uv(mesh_from=target_uv_mesh_obj, mesh_to=src_mesh_obj)
 
-#        export_button = col.operator("export_scene.obj", text="Export OBJ [m]", icon='EXPORT')
-#        export_button.global_scale = 1.0
-#        export_button.use_selection = True
-#        col.separator()
+            # Exporting
+            print("Exporting UV updated object '{}' to {}".format(src_obj.name, dst_path))
+            export_object(obj=src_obj, export_type=item_type, path=dst_path)
+            # Destroying the scratch collection to cleanup the scene
+            destroy_collection(collection=scratch_collection)
 
-        row = col.row(align=True)
-        row.operator("ed.undo", icon='LOOP_BACK')
-        row.operator("ed.redo", icon='LOOP_FORWARDS')
-        col.separator()
+        destroy_collection(collection=uv_template_collection)
+        wm.progress_end()
+        return {'FINISHED'}
 
-        (year, month, day) = bl_info["version"]
-        col.label(text="Version: %s-%s-%s" % (year, month, day))
 
-classes = [
-    PG_SMPLXProperties,
+class SMPLSetSourceObjs(bpy.types.Operator, ImportHelper):
+    bl_idname = "object.smpl_set_source_objs"
+    bl_label = "Set Source OBJs"
+    bl_description = ("Set source obj files of SMPL bodies to convert UVs")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    filename_ext = ".obj"
+
+    filter_glob: StringProperty(
+        default="*.obj",
+        options={'HIDDEN'},
+    )
+
+    files: CollectionProperty(type=bpy.types.PropertyGroup)
+
+    def execute(self, context):
+        context.window_manager.smpl_tool.smpl_uv_source_objs.clear()
+        folder = (os.path.dirname(self.filepath))
+        for f in self.files:
+            so = context.window_manager.smpl_tool.smpl_uv_source_objs.add()
+            so.name = os.path.join(folder, f.name)
+        return {'FINISHED'}
+
+
+class SMPLClearSourceObjs(bpy.types.Operator):
+    bl_idname = "object.smpl_clear_source_objs"
+    bl_label = "Clear Source OBJs"
+    bl_description = ("Clear source obj files of SMPL bodies to convert UVs")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        context.window_manager.smpl_tool.smpl_uv_source_objs.clear()
+        return {'FINISHED'}
+
+
+class SMPLSetSourceFbxs(bpy.types.Operator, ImportHelper):
+    bl_idname = "object.smpl_set_source_fbxs"
+    bl_label = "Set Source FBXs"
+    bl_description = ("Set source fbx files of SMPL bodies to convert UVs")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    filename_ext = ".fbx"
+
+    filter_glob: StringProperty(
+        default="*.fbx",
+        options={'HIDDEN'},
+    )
+
+    files: CollectionProperty(type=bpy.types.PropertyGroup)
+
+    def execute(self, context):
+        context.window_manager.smpl_tool.smpl_uv_source_fbxs.clear()
+        folder = (os.path.dirname(self.filepath))
+        for f in self.files:
+            so = context.window_manager.smpl_tool.smpl_uv_source_fbxs.add()
+            so.name = os.path.join(folder, f.name)
+        return {'FINISHED'}
+
+
+class SMPLClearSourceFbxs(bpy.types.Operator):
+    bl_idname = "object.smpl_clear_source_fbxs"
+    bl_label = "Clear Source FBXs"
+    bl_description = ("Clear source fbx files of SMPL bodies to convert UVs")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        context.window_manager.smpl_tool.smpl_uv_source_fbxs.clear()
+        return {'FINISHED'}
+
+
+OPERATORS = [
     SMPLXAddGender,
     SMPLXSetTexture,
-    SMPLXRandomShapes,
-    SMPLXResetShapes,
-    SMPLXRandomExpressionShapes,
-    SMPLXResetExpressionShapes,
+    SMPLXMeasurementsToShape,
+    SMPLXRandomShape,
+    SMPLXResetShape,
+    SMPLXRandomExpressionShape,
+    SMPLXResetExpressionShape,
     SMPLXSnapGroundPlane,
     SMPLXUpdateJointLocations,
     SMPLXSetPoseshapes,
     SMPLXResetPoseshapes,
     SMPLXSetHandpose,
     SMPLXWritePose,
-    SMPLXLoadPose,
     SMPLXResetPose,
+    SMPLXLoadPose,
     SMPLXExportUnityFBX,
-    SMPLX_PT_Model,
-    SMPLX_PT_Shape,
-    SMPLX_PT_Pose,
-    SMPLX_PT_Export
+    SMPLExecuteConvertUV,
+    SMPLSetSourceObjs,
+    SMPLClearSourceObjs,
+    SMPLSetSourceFbxs,
+    SMPLClearSourceFbxs,
 ]
-
-def register():
-    from bpy.utils import register_class
-    for cls in classes:
-        bpy.utils.register_class(cls)
-
-    # Store properties under WindowManager (not Scene) so that they are not saved in .blend files and always show default values after loading
-    bpy.types.WindowManager.smplx_tool = PointerProperty(type=PG_SMPLXProperties)
-
-def unregister():
-    from bpy.utils import unregister_class
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
-
-    del bpy.types.WindowManager.smplx_tool
-
-if __name__ == "__main__":
-    register()
