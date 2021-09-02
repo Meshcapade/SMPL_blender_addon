@@ -1,30 +1,31 @@
 from zipfile import ZipFile, ZIP_DEFLATED
-from os import path, walk, listdir
+from os import walk, listdir
 from datetime import date
-
-build_script_dir = path.dirname(path.abspath(__file__))
+from pathlib import Path
+build_script_dir = Path(__file__).parent
 today = date.today()
 filedate = today.strftime("%Y%m%d")
 filename = '{}_{}.zip'.format("smplx_blender", filedate)
-
-root_folder = "{}/../".format(build_script_dir)
-addon_folder = "{}/smplx_blender".format(root_folder)
-data_folder = "{}/data".format(addon_folder)
+root_folder = build_script_dir.parent
+addon_folder = root_folder / "smplx_blender"
+data_folder = addon_folder / "data"
 
 with ZipFile(filename, 'w') as z:
+
     # Adding python and data files
     for root, _, files in walk(addon_folder):
         for file in files:
-            if not (root.startswith(data_folder) or file.endswith('.py') or file.endswith('.pyd')):
-                continue
-            filepath = path.join(root, file)
-            print("Adding '{}'".format(filepath.replace(root_folder, "")))
-            z.write(filepath, compress_type=ZIP_DEFLATED)
+            # Python files or data files
+            if Path(file).suffix in ['.py', '.pyd'] or Path(root) == data_folder:
+                filepath = Path(root) / Path(file)
+                print("Adding '{}'".format(filepath))
+                z.write(filepath, compress_type=ZIP_DEFLATED)
+
     # Adding README, LICENSE, and other root .md files
     for file in listdir(root_folder):
-        if file.endswith(".md"):
-            filepath = path.join(root_folder, file)
-            print("Adding '{}'".format(filepath.replace(root_folder, "")))
+        if Path(file).suffix == ".md":
+            filepath = Path(root_folder) / Path(file)
+            print("Adding '{}'".format(filepath))
             z.write(filepath, compress_type=ZIP_DEFLATED)
 
 print("Finished making release '{}', saved to current directory".format(filename))

@@ -16,6 +16,8 @@ def imported_object(func):
         old_objs = set(active_collection.objects)
         func(*args, **kwargs)
         imported_objs = set(active_collection.objects) - old_objs
+
+        # Assumes one imported object
         return imported_objs.pop()
     return wrap
 
