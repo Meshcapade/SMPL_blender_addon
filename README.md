@@ -1,3 +1,8 @@
+# About
+This addon is an extension of the [SMPL-X Blender addon](https://gitlab.tuebingen.mpg.de/jtesch/smplx_blender_addon) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL+H, SMPL-X and STAR) from Max Planck Institute, and is making this extension of the blender add-on available for commercial users who have an active license for the SMPL Model. 
+
+For acadmemic uses, please visit: https://gitlab.tuebingen.mpg.de/jtesch/smplx_blender_addon. Or contact us at support@meshcapade.com
+
 # SMPL-X and Meshcape Utilities Blender Add-on
 
 This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported SMPL-X mesh consists of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
@@ -73,27 +78,27 @@ Be sure to have had Git LFS installed, and pulled, in order to obtain said asset
 - To maintain editor responsiveness the add-on does not automatically recalculate joint locations when you change the shape manually via Blender shape keys. Use the `Update Joint Locations` button to update the joint locations after manual shape key change.
 - To maintain editor responsiveness the add-on does not automatically recalculate the corrective pose shape keys when edit the armature pose. Use the `Update Pose Shapes` button to update the joint locations after pose changes.
 
-  ### Meshcapade Utilities
+### Meshcapade Utilities
 
 - Launching Blender in a terminal will allow one to see the output of any running script. Particularly helpful for displaying progress of lengthier operations, as the UI does not show any info.
 
-## License
+## Licenses
 
-- Generated body mesh data using this add-on:
+- The blender code available in this repo is licensed under the GPL 3.0 license:
+https://www.gnu.org/licenses/gpl-3.0.en.html
 
-  - Licensed under SMPL-X Model License
 
-    - <https://smpl-x.is.tue.mpg.de/modellicense>
+- The SMPL, SMPL+H or SMPL-X model files used in or by this repo are available only under the SMPL-Commercial use license. Before using this product, please make sure you have an active SMPL Model commercial-use license. See models_license.md for further license information about SMPL & SMPL-X.
 
-- See LICENSE.md for further license information including commercial licensing
+
+- Body meshes generated using this add-on are covered under the SMPL-Body Creative-Commons-BY license: https://smpl.is.tue.mpg.de/bodylicense.html
 
 - Attribution for publications:
-
   - You agree to cite the most recent paper describing the model as specified on the SMPL-X website: <https://smpl-x.is.tue.mpg.de>
 
 ## Acknowledgements
 
-- We thank [Meshcapade](https://meshcapade.com/) for providing the SMPL-X female/male sample textures (`smplx_texture_f_alb.png`, `smplx_texture_m_alb.png`) under [Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/) license.
+- [Joachim Tesch](https://gitlab.tuebingen.mpg.de/jtesch), creator of the original blender addon for SMPL-X. This repo is a commercial-use extension for his addon which is available for academic use here: https://gitlab.tuebingen.mpg.de/jtesch/smplx_blender_addon
 
 - Sergey Prokudin (rainbow texture data)
 
@@ -110,5 +115,5 @@ Be sure to have had Git LFS installed, and pulled, in order to obtain said asset
 
 ## Contact
 
-- smplx-blender@tue.mpg.de
+- support@meshcapade.com
 - tyler@meshcapade.com
