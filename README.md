@@ -1,7 +1,7 @@
 # About
-This addon is an extension of the [SMPL-X Blender addon](https://gitlab.tuebingen.mpg.de/jtesch/smplx_blender_addon) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL+H, SMPL-X and STAR) from Max Planck Institute, and is making this extension of the blender add-on available for commercial users who have an active license for the SMPL Model. 
+This addon is an extension of the [SMPL-X Blender addon](https://smpl-x.is.tue.mpg.de/download.php) (requires login) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL+H, SMPL-X and STAR) from Max Planck Institute, and is making this extension of the blender add-on available for commercial users who have an active license for the SMPL Model. 
 
-For acadmemic uses, please visit: https://gitlab.tuebingen.mpg.de/jtesch/smplx_blender_addon. Or contact us at support@meshcapade.com
+For academic uses, please visit: https://smpl-x.is.tue.mpg.de/. Or contact us at support@meshcapade.com
 
 # SMPL-X and Meshcape Utilities Blender Add-on
 
