@@ -1,5 +1,5 @@
 # About
-This addon is an extension of the [SMPL-X Blender addon](https://smpl-x.is.tue.mpg.de/download.php) (requires login) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL+H, SMPL-X and STAR) from Max Planck Institute, and is making this extension of the blender add-on available for commercial users who have an active license for the SMPL Model. 
+This addon is an extension of the [SMPL-X Blender addon](https://www.youtube.com/watch?v=DY2k29Jef94) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL+H, SMPL-X and STAR) from Max Planck Institute, and is making this extension of the blender add-on available for commercial users who have an active license for the SMPL Model. 
 
 For academic uses, please visit: https://smpl-x.is.tue.mpg.de/. Or contact us at support@meshcapade.com
 
@@ -46,7 +46,8 @@ This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned mes
 - Batch convert OBJ or FBX UV formats
 
 ## Installation
-- Download [the latest release](https://github.com/Meshcapade/SMPL_blender_addon/releases/latest) zip file, `smplx_blender_YYYYMMDD.zip`. Do not unzip.
+- Download the zipped data file containing SMPL Model from the link provided to you at the time you recevied a link to this repo. If you do not have this link, please contact support@meshcapade.com for help.
+- Place the data file (it will be a file with naming of the form: `smplx_blender_YYYYMMDD.zip`) inside the folder containing the SMPL blenderadd-on code. Do not unzip.
 - Within Blender (2.92+), under Edit -> Preferences navigate to the Add-ons tab
 - Click the Install button on the upper right, navigate to and select the downloaded zip file, and click 'Install Add-on'
 - Once loaded, check the box next to the now appeared add-on title to activate.
