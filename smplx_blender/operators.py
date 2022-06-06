@@ -736,7 +736,7 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
 
         for index in range(NUM_SMPLX_JOINTS):
             pose_rodrigues = pose[index]
-            bone_name = SMPLX_JOINT_NAMES[index]  # body pose starts with left_hip
+            bone_name = SMPLX_JOINT_NAMES[index]
             set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
         # Activate corrective poseshapes
