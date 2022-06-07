@@ -613,11 +613,14 @@ class SMPLXSetHandpose(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SMPLXWritePose(bpy.types.Operator):
+class SMPLXWritePose(bpy.types.Operator, ExportHelper):
     bl_idname = "object.smplx_write_pose"
-    bl_label = "Write Pose To Console"
-    bl_description = ("Writes SMPL-X flat hand pose thetas to console window")
+    bl_label = "Write Pose To File"
+    bl_description = ("Writes SMPL-X pose file")
     bl_options = {'REGISTER', 'UNDO'}
+
+    # ExportHelper mixin class uses this
+    filename_ext = ".json"
 
     @classmethod
     def poll(cls, context):
@@ -645,7 +648,12 @@ class SMPLXWritePose(bpy.types.Operator):
             pose[index*3 + 1] = joint_pose[1]
             pose[index*3 + 2] = joint_pose[2]
 
-        print("\npose = " + str(pose))
+        pose_data = {
+            "pose": pose,
+        }
+
+        with open(self.filepath, "w") as f:
+            json.dump(pose_data, f)
 
         return {'FINISHED'}
 
@@ -688,22 +696,15 @@ class SMPLXResetPose(bpy.types.Operator):
 
 class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
     bl_idname = "object.smplx_load_pose"
-    bl_label = "Load Pose"
-    bl_description = ("Load relaxed-hand model pose from file")
+    bl_label = "Load Pose From File"
+    bl_description = ("Load SMPL-X pose from file")
     bl_options = {'REGISTER', 'UNDO'}
 
     filter_glob: StringProperty(
-        default="*.pkl",
+        default="*.json",
         options={'HIDDEN'}
     )
 
-    update_shape: BoolProperty(
-        name="Update shape parameters",
-        description="Update shape parameters using the beta shape information in the loaded file",
-        default=True
-    )
-
-    hand_pose_relaxed = None
 
     @classmethod
     def poll(cls, context):
@@ -726,105 +727,20 @@ class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
             obj = armature.children[0]
             context.view_layer.objects.active = obj  # mesh needs to be active object for recalculating joint locations
 
-        if self.hand_pose_relaxed is None:
-            path = os.path.dirname(os.path.realpath(__file__))
-            data_path = os.path.join(path, "data", "smplx_handposes.npz")
-            with np.load(data_path, allow_pickle=True) as data:
-                hand_poses = data["hand_poses"].item()
-                (left_hand_pose, right_hand_pose) = hand_poses["relaxed"]
-                self.hand_pose_relaxed = np.concatenate((left_hand_pose, right_hand_pose)).reshape(-1, 3)
-
         print("Loading: " + self.filepath)
 
-        translation = None
-        global_orient = None
-        body_pose = None
-        jaw_pose = None
-        # leye_pose = None
-        # reye_pose = None
-        left_hand_pose = None
-        right_hand_pose = None
-        betas = None
-        expression = None
         with open(self.filepath, "rb") as f:
-            data = pickle.load(f, encoding="latin1")
+            pose_data = json.load(f)
+            
+        pose = np.array(pose_data["pose"]).reshape(NUM_SMPLX_JOINTS, 3)
 
-            if "transl" in data:
-                translation = np.array(data["transl"]).reshape(3)
-
-            if "global_orient" in data:
-                global_orient = np.array(data["global_orient"]).reshape(3)
-
-            body_pose = np.array(data["body_pose"])
-            if body_pose.shape != (1, NUM_SMPLX_BODYJOINTS * 3):
-                print(f"Invalid body pose dimensions: {body_pose.shape}")
-                return {'CANCELLED'}
-
-            body_pose = np.array(data["body_pose"]).reshape(NUM_SMPLX_BODYJOINTS, 3)
-
-            jaw_pose = np.array(data["jaw_pose"]).reshape(3)
-            # leye_pose = np.array(data["leye_pose"]).reshape(3)
-            # reye_pose = np.array(data["reye_pose"]).reshape(3)
-            left_hand_pose = np.array(data["left_hand_pose"]).reshape(-1, 3)
-            right_hand_pose = np.array(data["right_hand_pose"]).reshape(-1, 3)
-
-            betas = np.array(data["betas"]).reshape(-1).tolist()
-            expression = np.array(data["expression"]).reshape(-1).tolist()
-
-        # Update shape if selected
-        if self.update_shape:
-            bpy.ops.object.mode_set(mode='OBJECT')
-            for index, beta in enumerate(betas):
-                key_block_name = f"Shape{index:03}"
-
-                if key_block_name in obj.data.shape_keys.key_blocks:
-                    obj.data.shape_keys.key_blocks[key_block_name].value = beta
-                else:
-                    print(f"ERROR: No key block for: {key_block_name}")
-
-            bpy.ops.object.smplx_update_joint_locations('EXEC_DEFAULT')
-
-        if global_orient is not None:
-            set_pose_from_rodrigues(armature, "pelvis", global_orient)
-
-        for index in range(NUM_SMPLX_BODYJOINTS):
-            pose_rodrigues = body_pose[index]
-            bone_name = SMPLX_JOINT_NAMES[index + 1]  # body pose starts with left_hip
+        for index in range(NUM_SMPLX_JOINTS):
+            pose_rodrigues = pose[index]
+            bone_name = SMPLX_JOINT_NAMES[index]
             set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
-
-        set_pose_from_rodrigues(armature, "jaw", jaw_pose)
-
-        # Left hand
-        start_name_index = 1 + NUM_SMPLX_BODYJOINTS + 3
-        for i in range(0, NUM_SMPLX_HANDJOINTS):
-            pose_rodrigues = left_hand_pose[i]
-            bone_name = SMPLX_JOINT_NAMES[start_name_index + i]
-            pose_relaxed_rodrigues = self.hand_pose_relaxed[i]
-            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, pose_relaxed_rodrigues)
-
-        # Right hand
-        start_name_index = 1 + NUM_SMPLX_BODYJOINTS + 3 + NUM_SMPLX_HANDJOINTS
-        for i in range(0, NUM_SMPLX_HANDJOINTS):
-            pose_rodrigues = right_hand_pose[i]
-            bone_name = SMPLX_JOINT_NAMES[start_name_index + i]
-            pose_relaxed_rodrigues = self.hand_pose_relaxed[NUM_SMPLX_HANDJOINTS + i]
-            set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, pose_relaxed_rodrigues)
-
-        if translation is not None:
-            # Set translation
-            armature.location = (translation[0], -translation[2], translation[1])
 
         # Activate corrective poseshapes
         bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
-
-        # Set face expression
-        for index, exp in enumerate(expression):
-            key_block_name = f"Exp{index:03}"
-
-            if key_block_name in obj.data.shape_keys.key_blocks:
-                obj.data.shape_keys.key_blocks[key_block_name].value = exp
-            else:
-                print(f"ERROR: No key block for: {key_block_name}")
 
         return {'FINISHED'}
 
