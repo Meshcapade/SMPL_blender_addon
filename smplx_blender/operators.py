@@ -25,7 +25,8 @@ from .blender import (
 from mathutils import Vector, Quaternion
 from math import radians
 
-
+# ================================
+# this is the same as CreateAvatar
 class SMPLXAddGender(bpy.types.Operator):
     bl_idname = "scene.smplx_add_gender"
     bl_label = "Add"
@@ -64,7 +65,8 @@ class SMPLXAddGender(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# this is the same as SetTexture
 class SMPLXSetTexture(bpy.types.Operator):
     bl_idname = "object.smplx_set_texture"
     bl_label = "Set"
@@ -149,7 +151,8 @@ class SMPLXSetTexture(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# same as AfM
 class SMPLXMeasurementsToShape(bpy.types.Operator):
     bl_idname = "object.smplx_measurements_to_shape"
     bl_label = "Measurements To Shape"
@@ -228,7 +231,8 @@ class SMPLXMeasurementsToShape(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# same as RandomShape
 class SMPLXRandomShape(bpy.types.Operator):
     bl_idname = "object.smplx_random_shape"
     bl_label = "Random"
@@ -254,7 +258,8 @@ class SMPLXRandomShape(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# this got split into ResetFaceShape and ResetBodyShape 
 class SMPLXResetShape(bpy.types.Operator):
     bl_idname = "object.smplx_reset_shape"
     bl_label = "Reset"
@@ -280,7 +285,8 @@ class SMPLXResetShape(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# same as RandomExpressionShape
 class SMPLXRandomExpressionShape(bpy.types.Operator):
     bl_idname = "object.smplx_random_expression_shape"
     bl_label = "Random Face Expression"
@@ -304,7 +310,8 @@ class SMPLXRandomExpressionShape(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# same as ResetExpressionShape
 class SMPLXResetExpressionShape(bpy.types.Operator):
     bl_idname = "object.smplx_reset_expression_shape"
     bl_label = "Reset"
@@ -328,7 +335,8 @@ class SMPLXResetExpressionShape(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# same as SnapToGroundPlane
 class SMPLXSnapGroundPlane(bpy.types.Operator):
     bl_idname = "object.smplx_snap_ground_plane"
     bl_label = "Snap To Ground Plane"
@@ -371,7 +379,8 @@ class SMPLXSnapGroundPlane(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# UpdateJointLocations
 class SMPLXUpdateJointLocations(bpy.types.Operator):
     bl_idname = "object.smplx_update_joint_locations"
     bl_label = "Update Joint Locations"
@@ -455,7 +464,8 @@ class SMPLXUpdateJointLocations(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# UpdatePoseCorrectives
 class SMPLXSetPoseshapes(bpy.types.Operator):
     bl_idname = "object.smplx_set_poseshapes"
     bl_label = "Update Pose Shapes"
@@ -526,7 +536,8 @@ class SMPLXSetPoseshapes(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# ResetPoseCorrectives
 class SMPLXResetPoseshapes(bpy.types.Operator):
     bl_idname = "object.smplx_reset_poseshapes"
     bl_label = "Reset"
@@ -556,7 +567,8 @@ class SMPLXResetPoseshapes(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# SMPLXSetHandpose
 class SMPLXSetHandpose(bpy.types.Operator):
     bl_idname = "object.smplx_set_handpose"
     bl_label = "Set"
@@ -612,7 +624,9 @@ class SMPLXSetHandpose(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# WritePoseToJSON
+# there is an additional write to console button in the other one
 class SMPLXWritePose(bpy.types.Operator, ExportHelper):
     bl_idname = "object.smplx_write_pose"
     bl_label = "Write Pose To File"
@@ -657,7 +671,8 @@ class SMPLXWritePose(bpy.types.Operator, ExportHelper):
 
         return {'FINISHED'}
 
-
+# ================================
+# this was untouched
 class SMPLXResetPose(bpy.types.Operator):
     bl_idname = "object.smplx_reset_pose"
     bl_label = "Reset Pose"
@@ -693,7 +708,8 @@ class SMPLXResetPose(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ================================
+# LoadPose
 class SMPLXLoadPose(bpy.types.Operator, ImportHelper):
     bl_idname = "object.smplx_load_pose"
     bl_label = "Load Pose From File"

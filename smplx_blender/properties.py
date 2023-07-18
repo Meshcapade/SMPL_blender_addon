@@ -21,7 +21,6 @@ from .globals import (
     # SMPL_V0,
 )
 
-
 class PG_SMPLXProperties(PropertyGroup):
 
     smplx_gender: EnumProperty(

@@ -65,7 +65,6 @@ class SMPLX_PT_Model(bpy.types.Panel):
         row = col.row(align=True)
         col.prop(context.window_manager.smplx_tool, "smplx_gender")
         col.operator("scene.smplx_add_gender", text="Add")
-
         col.separator()
         col.label(text="Texture:")
         row = col.row(align=True)

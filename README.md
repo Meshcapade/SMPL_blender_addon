@@ -1,14 +1,14 @@
 # About
-This addon is an extension of the [SMPL-X Blender addon](https://www.youtube.com/watch?v=DY2k29Jef94) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL+H, SMPL-X and STAR) from Max Planck Institute, and is making this extension of the blender add-on available for commercial users who have an active license for the SMPL Model. 
+This addon is an extension of the [SMPL-X Blender addon](https://www.youtube.com/watch?v=DY2k29Jef94) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL+H, SMPL-X, STAR and SUPR) from Max Planck Institute, and is making this extension of the blender add-on available for commercial users who have an active license for the SMPL Model. 
 
 For academic uses, please visit: https://smpl-x.is.tue.mpg.de/. Or contact us at support@meshcapade.com
 
 # SMPL-X and Meshcape Utilities Blender Add-on
 
-This add-on allows you to add [SMPL-X](https://smpl-x.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported SMPL-X mesh consists of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
+This add-on allows you to add [SMPL-H](https://smpl-x.is.tue.mpg.de), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported mesh consists of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
 
 - Requirements:
-  - Blender 2.92+ (tested with 2.93.0)
+  - Newest version developed in 3.5.1
 - Dev Requirements:
   - Python (for testing and building releases)
   - [Git LFS](https://git-lfs.github.com/) (for assets to build releases)
@@ -63,7 +63,7 @@ Enable sidebar in 3D Viewport>View>Sidebar, the tabs SMPL-X and Meshcapade Utili
 
 Run:
 
-```sh
+```
 python build/make_addon.py
 ```
 
@@ -89,7 +89,7 @@ Be sure to have had Git LFS installed, and pulled, in order to obtain said asset
 https://www.gnu.org/licenses/gpl-3.0.en.html
 
 
-- The SMPL, SMPL+H or SMPL-X model files used in or by this repo are available only under the SMPL-Commercial use license. Before using this product, please make sure you have an active SMPL Model commercial-use license. See models_license.md for further license information about SMPL & SMPL-X.
+- The SMPL, SMPL+H, SMPL-X, or SUPR model files used in or by this repo are available only under the SMPL-Commercial use license. Before using this product, please make sure you have an active SMPL Model commercial-use license. See models_license.md for further license information about SMPL & SMPL-X.
 
 
 - Body meshes generated using this add-on are covered under the SMPL-Body Creative-Commons-BY license: https://smpl.is.tue.mpg.de/bodylicense.html
@@ -113,8 +113,8 @@ https://www.gnu.org/licenses/gpl-3.0.en.html
 - 20210525: Replaced vertices-to-joints regressor with beta-to-joints regressor. Added rainbow texture (CC BY-NC 4.0).
 - 20210611: Added option to set shape from height and weight values for female and male models
 - 20210820: Created Meshcapade fork
+- 20230720: Added SUPR and limited SMPLH support to the plugin 
 
 ## Contact
 
 - support@meshcapade.com
-- tyler@meshcapade.com
