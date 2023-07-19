@@ -2,9 +2,50 @@ import bpy
 from .globals import (
     FBX_TYPE,
     OBJ_TYPE,
+    SUPR_JOINT_NAMES,
+    SMPLH_JOINT_NAMES,
+    SMPLX_JOINT_NAMES,
 )
 from mathutils import Vector, Quaternion
 import os
+
+def get_joint_names(SMPL_version):
+    if (SMPL_version == None):
+        print ("there is no SMPL_version")
+        return ("SUPR")
+    if (SMPL_version == 'SUPR'):
+        return SUPR_JOINT_NAMES
+    elif (SMPL_version == 'SMPLX'):
+        return SMPLX_JOINT_NAMES
+    elif (SMPL_version == 'SMPLH'):
+        return SMPLH_JOINT_NAMES
+    else: 
+        return "error" 
+
+def get_num_body_joints(SMPL_version):
+    return 21
+    if (SMPL_version == 'SUPR'):
+        return NUM_SUPR_BODY_JOINTS
+    elif (SMPL_version == 'SMPLX'):
+        return NUM_SMPLX_BODY_JOINTS
+
+def get_num_hand_joints(SMPL_version):
+    return 15
+    if (SMPL_version == 'SUPR'):
+        return NUM_SUPR_HAND_JOINTS
+    elif (SMPL_version == 'SMPLX'):
+        return NUM_SMPLX_HAND_JOINTS    
+
+
+def setup_bone(bone, SMPL_version):
+    if (SMPL_version == 'SMPLX'):
+        bone.head = (0.0, 0.0, 0.0)
+        bone.tail = (0.0, 0.0, 0.1)
+
+    elif (SMPL_version == 'SUPR'):
+        bone.head = (0, 0, 0)
+        bone.tail = (0, 10, 0)
+
 
 def get_uv_obj_path(uv_type, resolution):
     path = os.path.dirname(os.path.realpath(__file__))
@@ -148,9 +189,20 @@ def rodrigues_from_pose(armature, bone_name):
 
 def update_corrective_poseshapes(self, context):
     if self.smplx_corrective_poseshapes:
-        bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
+        bpy.ops.object.update_pose_correctives('EXEC_DEFAULT')
     else:
         bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
+
+
+def correct_for_anim_format(anim_format, armature):
+    if anim_format == "AMASS":
+        # AMASS target floor is XY ground plane for SMPL-X template in OpenGL Y-up space (XZ ground plane).
+        # Since SMPL-X Blender model is Z-up (and not Y-up) for rest/template pose, we need to adjust root node rotation to ensure that the resulting animated body is on Blender XY ground plane.
+        bone_name = "root"
+        if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
+            armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
+        armature.pose.bones[bone_name].rotation_quaternion = Quaternion((1.0, 0.0, 0.0), radians(-90))
+        armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=1)
 
 
 def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=None):

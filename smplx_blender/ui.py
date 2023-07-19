@@ -3,111 +3,95 @@ from .globals import (
     VERSION,
 )
 
+ENABLE_AFM = False
 
-class SMPL_PT_Convert_UV(bpy.types.Panel):
-    bl_label = "Convert UV"
-    bl_category = "Meshcapade Utilities"
+class SMPL_PT_Load(bpy.types.Panel):
+    bl_label = "Load Avatar"
+    bl_category = "Meshcapade"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
 
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.operator("object.smpl_set_source_objs", text="Select source OBJs")
-        split.operator("object.smpl_clear_source_objs", icon="CANCEL", text="Clear")
-        col.prop(context.window_manager.smpl_tool, "smpl_uv_source_objs")
-        col.separator()
-        row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.operator("object.smpl_set_source_fbxs", text="Select source FBXs")
-        split.operator("object.smpl_clear_source_fbxs", icon="CANCEL", text="Clear")
-        col.prop(context.window_manager.smpl_tool, "smpl_uv_source_fbxs")
-        col.separator()
-        row = col.row(align=True)
-        row.prop(context.window_manager.smpl_tool, "smpl_uv_type")
-        col.separator()
-        row = col.row(align=True)
-        row.prop(context.window_manager.smpl_tool, "smpl_uv_output_dir")
-        col.separator()
-        col.separator()
-        num_source_objs = len(context.window_manager.smpl_tool.smpl_uv_source_objs)
-        num_source_fbxs = len(context.window_manager.smpl_tool.smpl_uv_source_fbxs)
-        num_source_items = num_source_objs + num_source_fbxs
-        output_dir = context.window_manager.smpl_tool.smpl_uv_output_dir
-
-        if num_source_items == 0:
-            col.label(
-                icon="ERROR",
-                text="No SMPL mesh items to convert, select source OBJs or FBXs",
-            )
-        elif not output_dir:
-            col.label(
-                icon="ERROR",
-                text="No output directory specified",
-            )
-
-        col.operator("object.smpl_execute_convert_uv")
+        col.operator("object.load_avatar")
 
 
-class SMPLX_PT_Model(bpy.types.Panel):
-    bl_label = "SMPL-X Model"
-    bl_category = "SMPL-X"
+class SMPL_PT_Create(bpy.types.Panel):
+    bl_label = "Create Avatar"
+    bl_category = "Meshcapade"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
 
     def draw(self, context):
-
         layout = self.layout
         col = layout.column(align=True)
-
+        
         row = col.row(align=True)
-        col.prop(context.window_manager.smplx_tool, "smplx_gender")
-        col.operator("scene.smplx_add_gender", text="Add")
+        col.prop(context.window_manager.smpl_tool, "SMPL_version")
+        col.separator()
+
+        col.prop(context.window_manager.smpl_tool, "gender")
+        col.separator()
+
+        col.operator("scene.create_avatar", text="Create")
+
         col.separator()
         col.label(text="Texture:")
         row = col.row(align=True)
         split = row.split(factor=0.75, align=True)
-        split.prop(context.window_manager.smplx_tool, "smplx_texture")
-        split.operator("object.smplx_set_texture", text="Set")
+        split.prop(context.window_manager.smpl_tool, "texture")
+        split.operator("object.set_texture", text="Set")
 
 
-class SMPLX_PT_Shape(bpy.types.Panel):
+class SMPL_PT_Shape(bpy.types.Panel):
     bl_label = "Shape"
-    bl_category = "SMPL-X"
+    bl_category = "Meshcapade"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if mesh is not SMPLH because we can't support that right now
+            return (bpy.context.object['SMPL version'] != 'SMPLH')
+        except: return False
 
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
+        col2 = layout.column(align=True)
 
-        col.prop(context.window_manager.smplx_tool, "smplx_height")
-        col.prop(context.window_manager.smplx_tool, "smplx_weight")
-        col.operator("object.smplx_measurements_to_shape")
-        col.separator()
+        col.alert = not ENABLE_AFM
+        col.prop(context.window_manager.smpl_tool, "height")
+        col.prop(context.window_manager.smpl_tool, "weight")
+        
+        if (not ENABLE_AFM):
+            col.label(text="Measurements are outdated.")
 
-        row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.operator("object.smplx_random_shape")
-        split.operator("object.smplx_reset_shape")
-        col.separator()
+        row = col2.row(align=True)
+        split = row.split(factor=0.5, align=True)
+        split.operator("object.random_body_shape")
+        split.operator("object.random_face_shape")
 
-        col.operator("object.smplx_snap_ground_plane")
-        col.separator()
+        row2 = col2.row(align=True)
+        split2 = row2.split(factor=0.5, align=True)
+        split2.operator("object.reset_body_shape")
+        split2.operator("object.reset_face_shape")
 
-        col.operator("object.smplx_update_joint_locations")
-        col.separator()
-        row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.operator("object.smplx_random_expression_shape")
-        split.operator("object.smplx_reset_expression_shape")
+        row3 = col2.row(align=True)
+        split3 = row3.split(factor=0.5, align=True)
+        split3.prop(context.window_manager.smpl_tool, "random_body_mult")
+        split3.prop(context.window_manager.smpl_tool, "random_face_mult")
+
+        col2.separator()
+        col2.operator("object.update_joint_locations")
+        col2.separator()
 
 
-class SMPLX_PT_Pose(bpy.types.Panel):
+class SMPL_PT_Pose(bpy.types.Panel):
     bl_label = "Pose"
-    bl_category = "SMPL-X"
+    bl_category = "Meshcapade"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
 
@@ -115,26 +99,61 @@ class SMPLX_PT_Pose(bpy.types.Panel):
         layout = self.layout
         col = layout.column(align=True)
 
-        col.prop(context.window_manager.smplx_tool, "smplx_corrective_poseshapes")
+        col.operator("object.load_pose")
         col.separator()
-        col.operator("object.smplx_set_poseshapes")
 
-        col.separator()
         col.label(text="Hand Pose:")
         row = col.row(align=True)
         split = row.split(factor=0.75, align=True)
-        split.prop(context.window_manager.smplx_tool, "smplx_handpose")
-        split.operator("object.smplx_set_handpose", text="Set")
-
+        split.prop(context.window_manager.smpl_tool, "handpose")
+        split.operator("object.set_handpose", text="Set")
+        
+        col.prop(context.window_manager.smpl_tool, "pose_correctives_enabled")
         col.separator()
-        col.operator("object.smplx_write_pose")
+        col.operator("object.update_pose_correctives")
+        col.operator("object.set_pose_shapes_sequence")
         col.separator()
-        col.operator("object.smplx_load_pose")
+        col.operator("object.snap_to_ground_plane")
 
 
-class SMPLX_PT_Export(bpy.types.Panel):
+class SMPL_PT_Expression(bpy.types.Panel):
+    bl_label = "Facial Expressions"
+    bl_idname = "OBJECT_PT_expression_presets"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Meshcapade"
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if mesh is active object
+            return (bpy.context.object['SMPL version'] != 'SMPLH')
+        except: return False
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row2 = col.row(align=True)
+        col.separator()
+        row3 = col.row(align=True)
+        split = row3.split(factor=0.75, align=True)
+
+        row.operator("object.set_expression_preset", text="Pleasant").preset = "pleasant"
+        row.operator("object.set_expression_preset", text="Happy").preset = "happy"
+        row.operator("object.set_expression_preset", text="Excited").preset = "excited"
+
+        row2.operator("object.set_expression_preset", text="Sad").preset = "sad"
+        row2.operator("object.set_expression_preset", text="Frustrated").preset = "frustrated"
+        row2.operator("object.set_expression_preset", text="Angry").preset = "angry"
+
+        split.operator("object.random_expression_shape")
+        split.operator("object.reset_expression_shape")
+
+
+class SMPL_PT_Export(bpy.types.Panel):
     bl_label = "Export"
-    bl_category = "SMPL-X"
+    bl_category = "Meshcapade"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
 
@@ -143,26 +162,18 @@ class SMPLX_PT_Export(bpy.types.Panel):
         col = layout.column(align=True)
 
         col.label(text="Shape Keys (Blend Shapes):")
-        col.prop(context.window_manager.smplx_tool, "smplx_export_setting_shape_keys")
-        col.separator()
-        col.separator()
-
-        col.operator("object.smplx_export_unity_fbx")
+        col.prop(context.window_manager.smpl_tool, "export_setting_shape_keys")
         col.separator()
 
-        row = col.row(align=True)
-        row.operator("ed.undo", icon='LOOP_BACK')
-        row.operator("ed.redo", icon='LOOP_FORWARDS')
+        col.operator("object.export_unity_fbx")
         col.separator()
-
-        (year, month, day) = VERSION
-        col.label(text="Version: %s-%s-%s" % (year, month, day))
 
 
 UI_CLASSES = [
-    SMPLX_PT_Model,
-    SMPLX_PT_Shape,
-    SMPLX_PT_Pose,
-    SMPLX_PT_Export,
-    SMPL_PT_Convert_UV,
+    SMPL_PT_Load,
+    SMPL_PT_Create,
+    SMPL_PT_Shape,
+    SMPL_PT_Pose,
+    SMPL_PT_Expression,
+    SMPL_PT_Export,
 ]

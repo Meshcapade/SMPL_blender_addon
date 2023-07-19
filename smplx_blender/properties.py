@@ -20,10 +20,23 @@ from .globals import (
     SMPL_V1,
     # SMPL_V0,
 )
+ 
+def MeasurementsToShape(self, context):
+    bpy.ops.object.measurements_to_shape('EXEC_DEFAULT')
 
-class PG_SMPLXProperties(PropertyGroup):
 
-    smplx_gender: EnumProperty(
+class PG_SMPLProperties(PropertyGroup):
+    SMPL_version: EnumProperty(
+        name = "SMPL Version",
+        description = "SMPL family version of the avatar you'd like to create",
+        items = [ 
+            ("SMPLH", "SMPL-H", ""),  #removing this for now because we don't have a joint regressor for it
+            ("SMPLX", "SMPL-X", ""), 
+            ("SUPR", "SUPR", "") 
+        ]
+    )
+
+    gender: EnumProperty(
         name="Model",
         description="SMPL-X model",
         items=[
@@ -33,27 +46,27 @@ class PG_SMPLXProperties(PropertyGroup):
         ]
     )
 
-    smplx_texture: EnumProperty(
+    texture: EnumProperty(
         name="",
         description="SMPL-X model texture",
         items=[
             ("NONE", "None", ""),
-            ("smplx_texture_f_alb.png", "Female", ""),
-            ("smplx_texture_m_alb.png", "Male", ""),
-            ("smplx_texture_rainbow.png", "Rainbow", ""),
+            ("f", "Female", ""),
+            ("m", "Male", ""),
+            ("texture_rainbow.png", "Rainbow", ""),
             ("UV_GRID", "UV Grid", ""),
             ("COLOR_GRID", "Color Grid", ""),
         ]
     )
 
-    smplx_corrective_poseshapes: BoolProperty(
+    pose_correctives_enabled: BoolProperty(
         name="Corrective Pose Shapes",
         description="Enable/disable corrective pose shapes of SMPL-X model",
         update=update_corrective_poseshapes,
         default=True,
     )
 
-    smplx_handpose: EnumProperty(
+    handpose: EnumProperty(
         name="",
         description="SMPL-X hand pose",
         items=[
@@ -62,7 +75,7 @@ class PG_SMPLXProperties(PropertyGroup):
         ]
     )
 
-    smplx_export_setting_shape_keys: EnumProperty(
+    export_setting_shape_keys: EnumProperty(
         name="",
         description="Blend shape export settings",
         items=[
@@ -84,70 +97,47 @@ class PG_SMPLXProperties(PropertyGroup):
         ],
     )
 
-    smplx_height: FloatProperty(
-        name="Target Height [m]",
-        default=1.70,
-        min=1.4,
-        max=2.2,
+    height: FloatProperty(
+        update=MeasurementsToShape, 
+        name="Target Height [cm]", 
+        default=170, 
+        min=140, 
+        max=220
     )
 
-    smplx_weight: FloatProperty(
-        name="Target Weight [kg]",
-        default=60,
-        min=40,
-        max=110,
+    weight: FloatProperty(
+        update=MeasurementsToShape, 
+        name="Target Weight [kg]", 
+        default=60, 
+        min=40, 
+        max=110
     )
 
-
-class PG_SMPLConvertProperties(PropertyGroup):
-
-    smpl_uv_source_objs: CollectionProperty(
-        type=PropertyGroup,
+    random_body_mult: FloatProperty(
+        name="Body Multiplier",
+        default=1.5, 
+        min=0, 
+        max=5
     )
-
-    smpl_uv_source_fbxs: CollectionProperty(
-        type=PropertyGroup,
-    )
-
-    smpl_uv_output_dir: StringProperty(
-        name="Output Directory",
-        subtype='DIR_PATH',
-        default="",
-    )
-
-    smpl_resolution: EnumProperty(
-        name="SMPL Resolution",
-        description="The SMPL resolution",
-        items=[
-            (HIGH, "High", ""),
-            (MEDIUM, "Medium", ""),
-            (LOW, "Low", ""),
-        ]
-    )
-
-    smpl_uv_type: EnumProperty(
-        name="Output UV Type",
-        description="The UV coordinate version",
-        items=[
-            (SMPL_V1, "SMPL v1 (current)", ""),
-            # (SMPL_V0, "SMPL v0 (legacy)", ""),
-        ]
+    
+    random_face_mult: FloatProperty(
+        name="Face Multiplier", 
+        default=1.5, 
+        min=0, 
+        max=5
     )
 
 
 PROPERTY_CLASSES = [
-    PG_SMPLXProperties,
-    PG_SMPLConvertProperties,
+    PG_SMPLProperties,
 ]
 
 
 def define_props():
     # Store properties under WindowManager (not Scene) so that they are not saved
     # in .blend files and always show default values after loading
-    bpy.types.WindowManager.smplx_tool = PointerProperty(type=PG_SMPLXProperties)
-    bpy.types.WindowManager.smpl_tool = PointerProperty(type=PG_SMPLConvertProperties)
+    bpy.types.WindowManager.smpl_tool = PointerProperty(type=PG_SMPLProperties)
 
 
 def destroy_props():
-    del bpy.types.WindowManager.smplx_tool
     del bpy.types.WindowManager.smpl_tool
