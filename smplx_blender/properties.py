@@ -20,14 +20,17 @@ from .globals import (
     SMPL_V1,
     # SMPL_V0,
 )
- 
+
 def MeasurementsToShape(self, context):
     bpy.ops.object.measurements_to_shape('EXEC_DEFAULT')
+    context.window_manager.smpl_tool.alert = False
 
 
 class PG_SMPLProperties(PropertyGroup):
+    alert: BoolProperty(default=False)
+
     SMPL_version: EnumProperty(
-        name = "SMPL Version",
+        name = "SMPL version",
         description = "SMPL family version of the avatar you'd like to create",
         items = [ 
             ("SMPLH", "SMPL-H", ""),  #removing this for now because we don't have a joint regressor for it
@@ -37,7 +40,7 @@ class PG_SMPLProperties(PropertyGroup):
     )
 
     gender: EnumProperty(
-        name="Model",
+        name="Gender",
         description="SMPL-X model",
         items=[
             ("female", "Female", ""),
@@ -59,15 +62,8 @@ class PG_SMPLProperties(PropertyGroup):
         ]
     )
 
-    pose_correctives_enabled: BoolProperty(
-        name="Corrective Pose Shapes",
-        description="Enable/disable corrective pose shapes of SMPL-X model",
-        update=update_corrective_poseshapes,
-        default=True,
-    )
-
     handpose: EnumProperty(
-        name="",
+        name="Hands",
         description="SMPL-X hand pose",
         items=[
             ("relaxed", "Relaxed", ""),

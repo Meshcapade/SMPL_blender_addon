@@ -3,22 +3,8 @@ from .globals import (
     VERSION,
 )
 
-ENABLE_AFM = False
-
-class SMPL_PT_Load(bpy.types.Panel):
-    bl_label = "Load Avatar"
-    bl_category = "Meshcapade"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column(align=True)
-        col.operator("object.load_avatar")
-
-
 class SMPL_PT_Create(bpy.types.Panel):
-    bl_label = "Create Avatar"
+    bl_label = "Create"
     bl_category = "Meshcapade"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -26,14 +12,13 @@ class SMPL_PT_Create(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        
         row = col.row(align=True)
         col.prop(context.window_manager.smpl_tool, "SMPL_version")
-        col.separator()
 
+        col.separator()
         col.prop(context.window_manager.smpl_tool, "gender")
-        col.separator()
 
+        col.separator()
         col.operator("scene.create_avatar", text="Create")
 
         col.separator()
@@ -42,6 +27,18 @@ class SMPL_PT_Create(bpy.types.Panel):
         split = row.split(factor=0.75, align=True)
         split.prop(context.window_manager.smpl_tool, "texture")
         split.operator("object.set_texture", text="Set")
+
+
+class SMPL_PT_Load(bpy.types.Panel):
+    bl_label = "Load"
+    bl_category = "Meshcapade"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        col.operator("object.load_avatar")
 
 
 class SMPL_PT_Shape(bpy.types.Panel):
@@ -58,15 +55,16 @@ class SMPL_PT_Shape(bpy.types.Panel):
         except: return False
 
     def draw(self, context):
+        alert = context.window_manager.smpl_tool.alert
         layout = self.layout
         col = layout.column(align=True)
         col2 = layout.column(align=True)
 
-        col.alert = not ENABLE_AFM
+        col.alert = alert
         col.prop(context.window_manager.smpl_tool, "height")
         col.prop(context.window_manager.smpl_tool, "weight")
         
-        if (not ENABLE_AFM):
+        if (alert):
             col.label(text="Measurements are outdated.")
 
         row = col2.row(align=True)
@@ -86,7 +84,6 @@ class SMPL_PT_Shape(bpy.types.Panel):
 
         col2.separator()
         col2.operator("object.update_joint_locations")
-        col2.separator()
 
 
 class SMPL_PT_Pose(bpy.types.Panel):
@@ -100,18 +97,19 @@ class SMPL_PT_Pose(bpy.types.Panel):
         col = layout.column(align=True)
 
         col.operator("object.load_pose")
-        col.separator()
+        col.operator("object.reset_pose")
 
-        col.label(text="Hand Pose:")
+        col.separator()
         row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
+        split = row.split(factor=0.6666, align=True)
         split.prop(context.window_manager.smpl_tool, "handpose")
         split.operator("object.set_handpose", text="Set")
         
-        col.prop(context.window_manager.smpl_tool, "pose_correctives_enabled")
         col.separator()
-        col.operator("object.update_pose_correctives")
-        col.operator("object.set_pose_shapes_sequence")
+        col.operator("object.set_pose_correctives")
+        col.operator("object.set_pose_correctives_for_sequence")
+        col.operator("object.zero_out_pose_correctives")
+
         col.separator()
         col.operator("object.snap_to_ground_plane")
 
@@ -133,20 +131,20 @@ class SMPL_PT_Expression(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row2 = col.row(align=True)
-        col.separator()
-        row3 = col.row(align=True)
-        split = row3.split(factor=0.75, align=True)
 
+        row = col.row(align=True)
         row.operator("object.set_expression_preset", text="Pleasant").preset = "pleasant"
         row.operator("object.set_expression_preset", text="Happy").preset = "happy"
         row.operator("object.set_expression_preset", text="Excited").preset = "excited"
 
+        row2 = col.row(align=True)
         row2.operator("object.set_expression_preset", text="Sad").preset = "sad"
         row2.operator("object.set_expression_preset", text="Frustrated").preset = "frustrated"
         row2.operator("object.set_expression_preset", text="Angry").preset = "angry"
 
+        col.separator()
+        row3 = col.row(align=True)
+        split = row3.split(factor=0.67, align=True)
         split.operator("object.random_expression_shape")
         split.operator("object.reset_expression_shape")
 
@@ -163,17 +161,43 @@ class SMPL_PT_Export(bpy.types.Panel):
 
         col.label(text="Shape Keys (Blend Shapes):")
         col.prop(context.window_manager.smpl_tool, "export_setting_shape_keys")
-        col.separator()
 
-        col.operator("object.export_unity_fbx")
         col.separator()
+        col.operator("object.export_unity_fbx")
+
+
+class SMPL_PT_AdditionalTools(bpy.types.Panel):
+    bl_label = "Additional Tools"
+    bl_category = "Meshcapade"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+
+        row = col.row(align=True)
+        row.operator("object.modify_avatar", text="Modify Metadata")
+        row.operator("object.read_avatar", text="Read Metadata")
+
+        col.separator()
+        row2 = col.row(align=True)
+        row2.operator("object.write_pose_to_console")
+        row2.operator("object.write_pose_to_json")
+
+        col.separator()
+        col.operator("object.fix_blend_shape_ranges", text="Fix Blend Shape Ranges")
+
+        (year, month, day) = VERSION
+        col.label(text="Version: %s-%s-%s" % (year, month, day))
 
 
 UI_CLASSES = [
-    SMPL_PT_Load,
     SMPL_PT_Create,
+    SMPL_PT_Load,
     SMPL_PT_Shape,
     SMPL_PT_Pose,
     SMPL_PT_Expression,
-    SMPL_PT_Export,
+    # SMPL_PT_Export,  # this just doesn't seem that necissary and it's taking up space in the UI
+    SMPL_PT_AdditionalTools,
 ]

@@ -29,9 +29,7 @@ from .blender import (
     setup_bone,
     correct_for_anim_format,
 )
-from .ui import (
-    ENABLE_AFM
-)
+
 from mathutils import Vector, Quaternion
 from math import radians
 
@@ -633,10 +631,12 @@ class OP_RandomBodyShape(bpy.types.Operator):
 
         bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
 
-        global ENABLE_AFM
-        ENABLE_AFM = False
+        context.window_manager.smpl_tool.alert = True
 
         return {'FINISHED'}
+    
+    def draw(self, context):
+        context.window_manager.smpl_tool.alert = True
     
 
 class OP_RandomFaceShape(bpy.types.Operator):
@@ -713,11 +713,13 @@ class OP_ResetBodyShape(bpy.types.Operator):
             key_block.value = 0
 
         bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
-
-        ENABLE_AFM = True
+        context.window_manager.smpl_tool.alert = False
 
         return {'FINISHED'}
     
+    def draw(self, context):
+        context.window_manager.smpl_tool.alert = False
+
 
 class OP_ResetFaceShape(bpy.types.Operator):
     bl_idname = "object.reset_face_shape"
@@ -966,10 +968,10 @@ class OP_UpdateJointLocations(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OP_UpdatePoseCorrectives(bpy.types.Operator):
-    bl_idname = "object.update_pose_correctives"
-    bl_label = "Update Pose Correctives"
-    bl_description = ("Sets and updates corrective poseshapes for current pose")
+class OP_CalculatePoseCorrectives(bpy.types.Operator):
+    bl_idname = "object.set_pose_correctives"
+    bl_label = "Calculate Pose Correctives"
+    bl_description = ("Computes pose correctives for the current frame")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -1059,16 +1061,50 @@ class OP_UpdatePoseCorrectives(bpy.types.Operator):
         for index, weight in enumerate(poseweights_to_use):
             obj.data.shape_keys.key_blocks["Pose%03d" % index].value = weight
 
-        # Set checkbox without triggering update function
-        context.window_manager.smpl_tool["pose_correctives_enabled"] = True
-
         return {'FINISHED'}
 
 
-class OP_ResetPoseCorrectives(bpy.types.Operator):
-    bl_idname = "object.reset_pose_correctives"
-    bl_label = "Reset"
-    bl_description = ("Resets corrective poseshapes for current pose")
+class OP_CalculatePoseCorrectivesForSequence(bpy.types.Operator):
+    bl_idname = "object.set_pose_correctives_for_sequence"
+    bl_label = "Calculate Pose Correctives for Entire Sequence"
+    bl_description = ("Computes pose correctives for the current time slider range")
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if mesh is active object and parent is armature
+            return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
+        except: return False
+    
+    def execute(self, context):
+         # Get the start and end frames from the scene's render settings
+        start_frame = bpy.context.scene.frame_start
+        end_frame = bpy.context.scene.frame_end
+
+        # Get the object you want to animate
+        obj = bpy.context.object
+
+        # Iterate over each frame
+        for frame in range(start_frame, end_frame + 1):
+            # Set the current frame
+            bpy.context.scene.frame_set(frame)
+            
+            # Update pose shapes
+            bpy.ops.object.update_pose_correctives()
+            
+            # Insert a keyframe
+            obj.keyframe_insert(data_path="location", frame=frame)
+            obj.keyframe_insert(data_path="rotation_euler", frame=frame)
+            obj.keyframe_insert(data_path="scale", frame=frame)
+
+        return {"FINISHED"}
+
+
+class OP_ZeroOutPoseCorrectives(bpy.types.Operator):
+    bl_idname = "object.zero_out_pose_correctives"
+    bl_label = "Zero Out Pose Correctives"
+    bl_description = ("Removes pose correctives for current frame")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -1151,10 +1187,6 @@ class OP_SetHandpose(bpy.types.Operator):
             bone_name = joint_names[index + hand_joint_start_index]
             set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
-        # Update corrective poseshapes if used
-        if context.window_manager.smpl_tool.pose_correctives_enabled:
-            bpy.ops.object.update_pose_correctives('EXEC_DEFAULT')
-
         return {'FINISHED'}
 
 
@@ -1205,7 +1237,7 @@ class OP_WritePoseToConsole(bpy.types.Operator):
 
 class OP_WritePoseToJSON(bpy.types.Operator, ExportHelper):
     bl_idname = "object.write_pose_to_json"
-    bl_label = "Write Pose To File"
+    bl_label = "Write Pose To .json File"
     bl_description = ("Writes pose to a .json file")
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1252,7 +1284,7 @@ class OP_WritePoseToJSON(bpy.types.Operator, ExportHelper):
 
 
 class OP_ResetPose(bpy.types.Operator):
-    bl_idname = "object.smplx_reset_pose"
+    bl_idname = "object.reset_pose"
     bl_label = "Reset Pose"
     bl_description = ("Resets pose to default zero pose")
     bl_options = {'REGISTER', 'UNDO'}
@@ -1282,12 +1314,11 @@ class OP_ResetPose(bpy.types.Operator):
             bone.rotation_quaternion = Quaternion()
 
         # Reset corrective pose shapes
-        bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
+        bpy.ops.object.zero_out_pose_correctives('EXEC_DEFAULT')
 
         return {'FINISHED'}
 
 
-# .pkl was completely removed in the last version, I have it back in now, but maybe it should really be gone
 class OP_LoadPose(bpy.types.Operator, ImportHelper):
     bl_idname = "object.load_pose"
     bl_label = "Load Pose"
@@ -1295,7 +1326,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
     bl_options = {'REGISTER', 'UNDO'}
 
     filter_glob: StringProperty(
-        default="*.pkl;*.npz;*.npy;*.json",
+        default="*.npz;*.npy;*.json", # this originally worked for .pkl files only, but they have been since removed.  Let us know if that's a problem, we just need a good .pkl file to test against.
         options={'HIDDEN'}
     )
 
@@ -1556,7 +1587,7 @@ class OP_ExportUnityFBX(bpy.types.Operator, ExportHelper):
         bpy.ops.object.transform_apply(location=True)
 
         # Reset pose
-        bpy.ops.object.smplx_reset_pose('EXEC_DEFAULT')
+        bpy.ops.object.reset_pose('EXEC_DEFAULT')
 
         if export_shape_keys != 'SHAPE_POSE':
             # Remove pose corrective shape keys
@@ -1649,45 +1680,10 @@ class OP_ExportUnityFBX(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}
 
 
-class OP_SetPoseShapesSequence(bpy.types.Operator):
-    bl_idname = "object.set_pose_shapes_sequence"
-    bl_label = "Update For Entire Sequence"
-    bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(cls, context):
-        try:
-            # Enable button only if mesh is active object and parent is armature
-            return ( ((context.object.type == 'MESH') and (context.object.parent.type == 'ARMATURE')) or (context.object.type == 'ARMATURE'))
-        except: return False
-    
-    def execute(self, context):
-         # Get the start and end frames from the scene's render settings
-        start_frame = bpy.context.scene.frame_start
-        end_frame = bpy.context.scene.frame_end
-
-        # Get the object you want to animate
-        obj = bpy.context.object
-
-        # Iterate over each frame
-        for frame in range(start_frame, end_frame + 1):
-            # Set the current frame
-            bpy.context.scene.frame_set(frame)
-            
-            # Update pose shapes
-            bpy.ops.object.update_pose_correctives()
-            
-            # Insert a keyframe
-            obj.keyframe_insert(data_path="location", frame=frame)
-            obj.keyframe_insert(data_path="rotation_euler", frame=frame)
-            obj.keyframe_insert(data_path="scale", frame=frame)
-
-        return {"FINISHED"}
-
-
 class OP_SetExpressionPreset(bpy.types.Operator):
     bl_idname = "object.set_expression_preset"
     bl_label = "Set Expression Preset"
+    bl_description = ("Sets the facial expression to artist created presets")
     bl_options = {"REGISTER", "UNDO"}
 
     preset: bpy.props.StringProperty()
@@ -1749,6 +1745,84 @@ class OP_SetExpressionPreset(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class OP_ModifyMetadata(bpy.types.Operator):
+    bl_idname = "object.modify_avatar"
+    bl_label = "Modify Metadata"
+    bl_description = ("Click this button to save the meta data (SMPL version and gender) on the selected avatar.  The SMPL version and gender that are selected in the `Create Avatar` section will be assigned to the selected mesh.  This allows the plugin to know what kind of skeleton it's dealing with.  To view the meta data, click `Read Metadata` and check the console, or click `Object Properties` (orange box underneath the scene collection) > `Custom Properties`")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if in Object Mode
+            if (context.active_object is None) or (context.active_object.mode == 'OBJECT'):
+                return True
+            else: 
+                return False
+        except: return False
+
+    def execute(self, context):
+        gender = context.window_manager.smplx_tool.gender
+        SMPL_version = context.window_manager.smplx_tool.SMPL_version
+
+        #define custom properties on the avatar itself to store this kind of data so we can use it whenever we need to
+        bpy.context.object['gender'] = gender
+        bpy.context.object['SMPL version'] = SMPL_version
+
+        bpy.ops.object.read_avatar('EXEC_DEFAULT')
+
+        return {'FINISHED'}
+
+
+class OP_ReadMetadata(bpy.types.Operator):
+    bl_idname = "object.read_avatar"
+    bl_label = "Read Metadata"
+    bl_description = ("Prints the selected Avatar's meta data to the console")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if in Object Mode
+            if (context.active_object is None) or (context.active_object.mode == 'OBJECT'):
+                return True
+            else: 
+                return False
+        except: return False
+
+    def execute(self, context):
+        print(bpy.context.object['gender'])
+        print(bpy.context.object['SMPL version'])
+
+        return {'FINISHED'}
+
+# this is a work around for a problem with the blender worker's fbx output.  Currently those .fbx's shape keys ranges are limited to 0 and 1.  
+# this is a known problem, but I don't know why it's doing that.  For now, we can fix it using this button
+class OP_FixBlendShapeRanges(bpy.types.Operator):
+    bl_idname = "object.fix_blend_shape_ranges"
+    bl_label = "Fix Blend Shape Ranges"
+    bl_description = ("Click this for any imported .fbx to set the min and max values for all blendshapes to -10 to 10.  At the time of writing this, Blender hardcodes imported .fbx file's blend shape ranges to 0 and 1.  This means that all meshcapade.me and digidoppel .fbx files will have their blend shapes clamped.  Until Blender fixes this issue (they're working on it), this button functions as a workaround.")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            # Enable button only if in Object Mode
+            if (context.active_object is None) or (context.active_object.mode == 'OBJECT'):
+                return True
+            else: 
+                return False
+        except: return False
+
+    def execute(self, context):
+        
+        for sk in context.active_object.data.shape_keys.key_blocks:
+            sk.slider_min = -10
+            sk.slider_max = 10
+
+        return {'FINISHED'}
+
+
 OPERATORS = [
     OP_LoadAvatar,
     OP_CreateAvatar,
@@ -1763,12 +1837,16 @@ OPERATORS = [
     OP_SetExpressionPreset,
     OP_SnapToGroundPlane,
     OP_UpdateJointLocations,
-    OP_UpdatePoseCorrectives,
+    OP_CalculatePoseCorrectives,
+    OP_CalculatePoseCorrectivesForSequence,
     OP_SetHandpose,
     OP_WritePoseToJSON,
     OP_WritePoseToConsole,
     OP_ResetPose,
+    OP_ZeroOutPoseCorrectives,
     OP_LoadPose,
     OP_ExportUnityFBX,
-    OP_SetPoseShapesSequence,
+    OP_ModifyMetadata,
+    OP_ReadMetadata,
+    OP_FixBlendShapeRanges,
 ]
