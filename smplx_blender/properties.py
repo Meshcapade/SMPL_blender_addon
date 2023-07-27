@@ -10,9 +10,6 @@ from bpy.props import (
 from bpy.types import (
     PropertyGroup,
 )
-from .blender import (
-    update_corrective_poseshapes,
-)
 from .globals import (
     HIGH,
     MEDIUM,
@@ -33,9 +30,9 @@ class PG_SMPLProperties(PropertyGroup):
         name = "SMPL version",
         description = "SMPL family version of the avatar you'd like to create",
         items = [ 
-            ("SMPLH", "SMPL-H", ""),  #removing this for now because we don't have a joint regressor for it
+            ("SUPR", "SUPR", ""),
             ("SMPLX", "SMPL-X", ""), 
-            ("SUPR", "SUPR", "") 
+            ("SMPLH", "SMPL-H", ""),  #removing this for now because we don't have a joint regressor for it
         ]
     )
 
@@ -62,9 +59,9 @@ class PG_SMPLProperties(PropertyGroup):
         ]
     )
 
-    handpose: EnumProperty(
+    hand_pose: EnumProperty(
         name="Hands",
-        description="SMPL-X hand pose",
+        description="hand pose",
         items=[
             ("relaxed", "Relaxed", ""),
             ("flat", "Flat", ""),

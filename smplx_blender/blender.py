@@ -7,6 +7,7 @@ from .globals import (
     SMPLX_JOINT_NAMES,
 )
 from mathutils import Vector, Quaternion
+from math import radians
 import os
 
 def get_joint_names(SMPL_version):
@@ -185,13 +186,6 @@ def rodrigues_from_pose(armature, bone_name):
     rodrigues.normalize()
     rodrigues = rodrigues * angle
     return rodrigues
-
-
-def update_corrective_poseshapes(self, context):
-    if self.smplx_corrective_poseshapes:
-        bpy.ops.object.update_pose_correctives('EXEC_DEFAULT')
-    else:
-        bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
 
 
 def correct_for_anim_format(anim_format, armature):

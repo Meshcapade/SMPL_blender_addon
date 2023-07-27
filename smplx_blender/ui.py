@@ -51,7 +51,7 @@ class SMPL_PT_Shape(bpy.types.Panel):
     def poll(cls, context):
         try:
             # Enable button only if mesh is not SMPLH because we can't support that right now
-            return (bpy.context.object['SMPL version'] != 'SMPLH')
+            return (bpy.context.object['SMPL_version'] != 'SMPLH')
         except: return False
 
     def draw(self, context):
@@ -102,8 +102,8 @@ class SMPL_PT_Pose(bpy.types.Panel):
         col.separator()
         row = col.row(align=True)
         split = row.split(factor=0.6666, align=True)
-        split.prop(context.window_manager.smpl_tool, "handpose")
-        split.operator("object.set_handpose", text="Set")
+        split.prop(context.window_manager.smpl_tool, "hand_pose")
+        split.operator("object.set_hand_pose", text="Set")
         
         col.separator()
         col.operator("object.set_pose_correctives")
@@ -125,7 +125,7 @@ class SMPL_PT_Expression(bpy.types.Panel):
     def poll(cls, context):
         try:
             # Enable button only if mesh is active object
-            return (bpy.context.object['SMPL version'] != 'SMPLH')
+            return (bpy.context.object['SMPL_version'] != 'SMPLH')
         except: return False
 
     def draw(self, context):
