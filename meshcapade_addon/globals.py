@@ -2,7 +2,7 @@ import os
 import platform
 import numpy as np
 
-VERSION = (2023, 7, 20)
+VERSION = (2023, 8, 1)
 
 SMPLX_MODELFILE = "smplx_model_20210421.blend"
 SMPLX_MODELFILE_300 = "smplx_model_300_20220615.blend"

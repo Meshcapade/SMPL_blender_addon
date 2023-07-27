@@ -2,14 +2,14 @@ import bpy
 import importlib
 import sys
 
-addon_name = "SMPL_blender_addon"
-module = "smplx_blender"
+addon_name = "meshcapade"
+module = "meshcapade_addon"
 parts_to_reload = [
     "blender",
     "globals",
     "operators",
     "properties",
-    "smplx_blender",
+    "meshcapade_addon",
     "ui",
 ]
 
