@@ -1,21 +1,21 @@
 bl_info = {
-    "name": "SMPL Blender Addon",
-    "blender": (2, 80, 0),
-    "category": "Object",
+    "name": "Meshcapade Blender Tools",
+    "blender": (3, 5, 1),
+    "category": "Meshcapade",
 }
 
 if "bpy" in locals():
     import importlib
-    if "smplx_blender" in locals():
-        importlib.reload(smplx_blender)
+    if "meshcapade_addon" in locals():
+        importlib.reload(meshcapade_addon)
     else:
-        from .smplx_blender import smplx_blender
+        from .meshcapade_addon import meshcapade_addon
 else:
     import bpy
-    from .smplx_blender import smplx_blender
+    from .meshcapade_addon import meshcapade_addon
 
 def register():
-    smplx_blender.register()
+    meshcapade_addon.register()
 
 def unregister():
-    smplx_blender.unregister()
+    meshcapade_addon.unregister()

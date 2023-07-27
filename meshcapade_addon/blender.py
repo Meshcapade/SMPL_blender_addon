@@ -190,8 +190,8 @@ def rodrigues_from_pose(armature, bone_name):
 
 def correct_for_anim_format(anim_format, armature):
     if anim_format == "AMASS":
-        # AMASS target floor is XY ground plane for SMPL-X template in OpenGL Y-up space (XZ ground plane).
-        # Since SMPL-X Blender model is Z-up (and not Y-up) for rest/template pose, we need to adjust root node rotation to ensure that the resulting animated body is on Blender XY ground plane.
+        # AMASS target floor is XY ground plane for template in OpenGL Y-up space (XZ ground plane).
+        # Since the Blender model is Z-up (and not Y-up) for rest/template pose, we need to adjust root node rotation to ensure that the resulting animated body is on Blender XY ground plane.
         bone_name = "root"
         if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
             armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
@@ -224,16 +224,6 @@ def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=
         axis_result = rod_result.normalized()
         quat_result = Quaternion(axis_result, angle_rad_result)
         armature.pose.bones[bone_name].rotation_quaternion = quat_result
-
-        """
-        rod_reference = Vector((rodrigues_reference[0], rodrigues_reference[1], rodrigues_reference[2]))
-        angle_rad_reference = rod_reference.length
-        axis_reference = rod_reference.normalized()
-        quat_reference = Quaternion(axis_reference, angle_rad_reference)
-
-        # Rotate first into reference pose and then add the target pose
-        armature.pose.bones[bone_name].rotation_quaternion = quat_reference @ quat
-        """
     return
 
 

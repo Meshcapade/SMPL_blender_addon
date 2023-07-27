@@ -38,7 +38,6 @@ class PG_SMPLProperties(PropertyGroup):
 
     gender: EnumProperty(
         name="Gender",
-        description="SMPL-X model",
         items=[
             ("female", "Female", ""),
             ("male", "Male", ""),
@@ -48,7 +47,6 @@ class PG_SMPLProperties(PropertyGroup):
 
     texture: EnumProperty(
         name="",
-        description="SMPL-X model texture",
         items=[
             ("NONE", "None", ""),
             ("f", "Female", ""),

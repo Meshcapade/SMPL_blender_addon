@@ -40,7 +40,7 @@ from math import radians
 class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
     bl_idname = "object.load_avatar"
     bl_label = "Load Avatar"
-    bl_description = ("Load AMASS/SMPL-X animation and create animated SMPL-X body")
+    bl_description = ("Load a file that contains all the parameters for a SMPL family body")
     bl_options = {'REGISTER', 'UNDO'}
 
     filter_glob: StringProperty(
@@ -63,14 +63,6 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
             ("SMPLH", "SMPL-H", ""),
             ("SMPLX", "SMPL-X", ""),
             ("SUPR", "SUPR", ""),
-        ),
-    )
-
-    rest_position: EnumProperty(
-        name="Body rest position",
-        items=(
-            ("SMPL-X", "SMPL-X", "Use default SMPL-X rest position (feet below the floor)"),
-            ("GROUNDED", "Grounded", "Use feet-on-floor rest position"),
         ),
     )
 
@@ -210,25 +202,6 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
 
         bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
 
-        height_offset = 0
-        if self.rest_position == "GROUNDED":
-            bpy.ops.object.snap_to_ground_plane('EXEC_DEFAULT')
-            height_offset = armature.location[2]
-
-            # Apply location offsets to armature and skinned mesh
-            bpy.context.view_layer.objects.active = armature
-            armature.select_set(True)
-            obj.select_set(True)
-            bpy.ops.object.transform_apply(location = True, rotation=False, scale=False) # apply to selected objects
-            armature.select_set(False)
-
-            # Fix root bone location
-            bpy.ops.object.mode_set(mode='EDIT')
-            bone = armature.data.edit_bones["root"]
-            setup_bone(bone, SMPL_version)            
-            bpy.ops.object.mode_set(mode='OBJECT')
-            bpy.context.view_layer.objects.active = obj
-
         # Keyframe poses
         step_size = int(fps / target_framerate)
 
@@ -269,10 +242,6 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
 
             for bone_index, bone_name in enumerate(joints_to_use):
                 if bone_name == "pelvis":
-                    # Keyframe pelvis location
-                    if self.rest_position == "GROUNDED":
-                        current_trans[1] = current_trans[1] - height_offset # SMPL-X local joint coordinates are Y-Up
-
                     # for whatever reason, the AMASS animations for SMPLH and SUPR are 100 smaller than SMPLX
                     mult = 100
                     if (SMPL_version == 'SMPLX'):
@@ -792,7 +761,7 @@ class OP_RandomExpressionShape(bpy.types.Operator):
             distribution_range = 2
         elif (SMPL_version == 'SUPR'):
             starting_string = 'Shape3'  # the last 100 shape keys, 300 - 399, are expression keys
-            distribution_range = 1.5    # putting 2 here for SUPR like SMPLX gets kind of crazy sometimes so I scaled it back
+            distribution_range = 1.5    # 2 here gets kind of crazy sometimes so I scaled it back
 
         for key_block in obj.data.shape_keys.key_blocks:
             if key_block.name.startswith(starting_string):
@@ -977,7 +946,7 @@ class OP_UpdateJointLocations(bpy.types.Operator):
             bone = armature.data.edit_bones[joint_names[index]]
             setup_bone(bone, SMPL_version)
 
-            # Convert SMPL-X joint locations to Blender joint locations
+            # Convert joint locations to Blender joint locations
             joint_location = joint_locations[index]
 
             if (SMPL_version == 'SMPLX'):
@@ -1567,7 +1536,7 @@ class OP_SetExpressionPreset(bpy.types.Operator):
         obj = context.object
         if not obj or not obj.data.shape_keys:
             self.report(
-                {"WARNING"}, "Object has no shape keys. Please select a SMPL-X mesh."
+                {"WARNING"}, "Object has no shape keys. Please select a SMPL family mesh."
             )
             return {"CANCELLED"}
 

@@ -208,9 +208,9 @@ NUM_SUPR_JOINTS = len(SUPR_JOINT_NAMES)
 NUM_SUPR_BODY_JOINTS = 21    # leaving as is for now.  Not sure what to do about the toes
 NUM_SUPR_HAND_JOINTS = 15 
 
-NUM_SMPLX_JOINTS = len(SMPLX_JOINT_NAMES)
-NUM_SMPLX_BODY_JOINTS = 21   # not including pelvis, jaw or eyes?  With pelvis there are 22.  
-NUM_SMPLX_HAND_JOINTS = 15   # must be per hand
+NUM_SMPLH_JOINTS = len(SMPLX_JOINT_NAMES)
+NUM_SMPLH_BODY_JOINTS = 21   
+NUM_SMPLH_HAND_JOINTS = 15   # must be per hand
 
 FBX_TYPE = "fbx"
 OBJ_TYPE = "obj"
