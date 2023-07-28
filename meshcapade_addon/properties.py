@@ -10,13 +10,6 @@ from bpy.props import (
 from bpy.types import (
     PropertyGroup,
 )
-from .globals import (
-    HIGH,
-    MEDIUM,
-    LOW,
-    SMPL_V1,
-    # SMPL_V0,
-)
 
 def MeasurementsToShape(self, context):
     bpy.ops.object.measurements_to_shape('EXEC_DEFAULT')
@@ -51,7 +44,7 @@ class PG_SMPLProperties(PropertyGroup):
             ("NONE", "None", ""),
             ("f", "Female", ""),
             ("m", "Male", ""),
-            ("texture_rainbow.png", "Rainbow", ""),
+            ("rainbow.png", "Rainbow", ""),
             ("UV_GRID", "UV Grid", ""),
             ("COLOR_GRID", "Color Grid", ""),
         ]
