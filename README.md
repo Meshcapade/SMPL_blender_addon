@@ -18,7 +18,7 @@ This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](ht
 - Update joint locations<sup>1, 2</sup> 
 - Position feet on ground plane
 - Enable/disable corrective poseshapes for a single frame or for multiple frames
-- Change hand pose (flat, relaxed)
+- Change hand pose (flat, relaxed)<sup>2</sup> 
 - Write current pose in theta notation to console or to a .json file
 - Modify and read a body's metadata
 - Set the blend shape range of all shape keys to -10 and 10, to bypass a current bug in Blender when importing .fbx files with shape keys on them.

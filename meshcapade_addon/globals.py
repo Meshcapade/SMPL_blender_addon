@@ -222,8 +222,13 @@ LOW = "low"
 OS = platform.system()
 PATH = os.path.dirname(os.path.realpath(__file__))
 
-LEFT_HAND_RELAXED = np.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), "data", "handpose_relaxed_left.npy"))
-RIGHT_HAND_RELAXED = np.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), "data", "handpose_relaxed_right.npy"))
+try:
+    LEFT_HAND_RELAXED = np.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), "data", "handpose_relaxed_left.npy"))
+    RIGHT_HAND_RELAXED = np.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), "data", "handpose_relaxed_right.npy"))
+except:
+    LEFT_HAND_RELAXED = np.zeros(45)
+    RIGHT_HAND_RELAXED = np.zeros(45)
+
 
 RESOLUTIONS = [
     HIGH,
