@@ -5,15 +5,7 @@ For academic uses, please visit: https://smpl-x.is.tue.mpg.de/. Or contact us at
 
 # Meshcape Utilities Blender Add-on
 
-This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported mesh consists of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
-
-- Requirements:
-  - Newest version developed in 3.5.1
-- Dev Requirements:
-  - Python (for testing and building releases)
-  - [Git LFS](https://git-lfs.github.com/) (for assets to build releases)
-  - Flake8 (linting)
-- Additional dependencies: None
+This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported mesh consists of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives. It was developed in Blender 3.5.1.
 
 # Features
 
@@ -30,49 +22,57 @@ This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](ht
 - Change hand pose (flat, relaxed)
 - Write current pose in theta notation to console and console
 - Load avatar from .npz file
-*(not SMPLH)
+<br>
+<font size=2>*not SMPLH</font>
 
 ## Installation
 - Download the zipped data folder containing SMPL model files for which you have a SMPL-Commercial use license.  If you do not have this link, please contact support@meshcapade.com for help.
 - Unzip the data folder and place it inside the 'meshcapade/meshcapade_addon' folder.
-- Place that folder inside your blender folder here:
-  - windows: C:\Program Files\Blender Foundation\Blender 3.5\3.5\scripts\addons
-  - 
-  - 
-- Within Blender (3.5+), under Edit -> Preferences navigate to the Add-ons tab
-- Click the Install button on the upper right, navigate to and select the downloaded zip file, and click 'Install Add-on'
-- Once loaded, check the box next to the now appeared add-on title to activate.
+- Place that folder inside your Blender folder's addon folder here:
+  - <b>Windows</b>: `C:\Program Files\Blender Foundation\Blender <blender version>\<blender version>\scripts\addons\`
+  - <b>Linux</b>: `C:\Program Files\Blender Foundation\Blender <blender version>\<blender version>\scripts\addons\`
+  - <b>Mac</b>: `C:\Program Files\Blender Foundation\Blender <blender version>\<blender version>\scripts\addons\`
+- Go to Edit -> Preferences, select Add-ons from the left bar
+- Search for `Meshcapade` in the search bar on the top right
+- If the plugin is not already enabled, check the box to enable it
 
-![image](https://user-images.githubusercontent.com/538382/131877148-3d65f453-13ef-4c47-b56f-fd008930937a.png)
+![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/blender_addon_00.png)
 
-Enable sidebar in 3D Viewport>View>Sidebar, the tabs SMPL-X and Meshcapade Utilities should show along the sidebar.
+- To open the panel, click the tiny arrow below the viewport shading options on the top right of the viewport. 
 
-![image](https://user-images.githubusercontent.com/538382/131878699-df5b7fd1-9bbc-47ae-9cb4-8fd319727c9d.png)
-
-
-## Make Addon Release
-
-Run:
-
-```
-python build/make_addon.py
-```
-
-This wraps all python files and assets in the `meshcapade/meshcapade_addon/data` folder into a zip that can be installed by Blender as an addon.
-
-Be sure to have had Git LFS installed, and pulled, in order to obtain said assets.
+![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/blender_addon_01.gif)
 
 ## Notes
 
 ### SMPL-X
 
 - The add-on GUI (gender, texture, hand pose) does not reflect the state of the currently selected SMPL-X model if you work with multiple models in one scene.
-- To maintain editor responsiveness the add-on does not automatically recalculate joint locations when you change the shape manually via Blender shape keys. Use the `Update Joint Locations` button to update the joint locations after manual shape key change.
 - To maintain editor responsiveness the add-on does not automatically recalculate the corrective pose shape keys when edit the armature pose. Use the `Update Pose Shapes` button to update the joint locations after pose changes.
 
-### Meshcapade Utilities
+### Terminal
+- Opening the terminal window will allow you to see the output of any running script.  To achieve this with Linux or Mac, you need to launch Blender from the terminal.  
+  - Windows
+    - Click `Windows` > `Toggle System Console`
+  
+  ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/windows_terminal_00.png)
 
-- Launching Blender in a terminal will allow one to see the output of any running script. Particularly helpful for displaying progress of lengthier operations, as the UI does not show any info.
+  - Mac
+    - press command + space and type `terminal` and press enter
+
+  ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_terminal_00.png)
+
+    - leave the terminal window open and open up the applications folder in another window
+    - find Blender, right click on it, and select `Show Package Contents`
+    - That will open a new folder.  Select `Contents` > `MacOS`
+    - Inside that folder will be a single file called `Blender`.  Click and drag `Blender` onto the terminal window you opened in the first step. 
+  
+  ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_terminal_01.png)
+
+    - Press enter and it will launch blender from the terminal.
+  - Linux
+
+
+ Particularly helpful for displaying progress of lengthier operations, as the UI does not show any info.
 
 ## Licenses
 
