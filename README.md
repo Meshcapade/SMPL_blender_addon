@@ -38,9 +38,10 @@ This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](ht
 
 ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/blender_addon_00.png)
 
+<br>
 - To open the panel, click the tiny arrow below the viewport shading options on the top right of the viewport. 
 
-![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/blender_addon_01.gif)
+![image](https://raw.githubusercontent.com/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/blender_addon_01.gif)
 
 ## Notes
 
@@ -50,29 +51,30 @@ This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](ht
 - To maintain editor responsiveness the add-on does not automatically recalculate the corrective pose shape keys when edit the armature pose. Use the `Update Pose Shapes` button to update the joint locations after pose changes.
 
 ### Terminal
-- Opening the terminal window will allow you to see the output of any running script.  To achieve this with Linux or Mac, you need to launch Blender from the terminal.  
-  - Windows
-    - Click `Windows` > `Toggle System Console`
+Opening the terminal window will allow you to see the output of any running script.  It's particularly helpful for displaying progress of lengthier operations, since the UI doesn't show any info.  To achieve this with Linux or Mac, you need to launch Blender from the terminal.  
+#### Windows
+Click `Window` > `Toggle System Console`
   
-  ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/windows_terminal_00.png)
+![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/windows_terminal_00.png)
 
-  - Mac
-    - press command + space and type `terminal` and press enter
-
-  ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_terminal_00.png)
-
-    - leave the terminal window open and open up the applications folder in another window
-    - find Blender, right click on it, and select `Show Package Contents`
-    - That will open a new folder.  Select `Contents` > `MacOS`
-    - Inside that folder will be a single file called `Blender`.  Click and drag `Blender` onto the terminal window you opened in the first step. 
+#### Mac
+- press command + space and type `terminal` and press enter
+![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_terminal_00.png)
   
-  ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_terminal_01.png)
+- leave the terminal window open and open up the applications folder in another window
+- find Blender, right click on it, and select `Show Package Contents`
+- That will open a new folder.  Select `Contents` > `MacOS`
+- Inside that folder will be a single file called `Blender`.  Click and drag `Blender` onto the terminal window you opened in the first step. 
+![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_terminal_01.png)
 
-    - Press enter and it will launch blender from the terminal.
-  - Linux
+- Press enter and it will launch blender from the terminal.
 
+#### Linux
+This will be slightly different depending on your Linux distribution.
+- Open the terminal and go to the location of your blender executable.  You can also navigate there in the folder view and then launch the terminal from that location.
+![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/linux_terminal_00.png)
+- In the terminal, type `./blender` and press enter.  This will launch blender from the terminal.
 
- Particularly helpful for displaying progress of lengthier operations, as the UI does not show any info.
 
 ## Licenses
 
