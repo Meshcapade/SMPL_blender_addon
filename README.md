@@ -3,8 +3,6 @@ This addon is an extension of the [SMPL-X Blender addon](https://www.youtube.com
 
 Academic use of this plugin is free - just contact us at support@meshcapade.com.
 
-# Meshcape Utilities Blender Add-on
-
 This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) bodies to your current Blender scene. Each body consists of a mesh, a shape specific rig, and shape keys (blend shapes) for shape, expression and pose correctives. This addon was most recently developed in Blender 3.5.1.
 
 # Features
@@ -36,14 +34,16 @@ This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](ht
 - Unzip the data folder and place it inside the 'meshcapade/meshcapade_addon' folder.
 - Place that folder inside your Blender folder's addon folder here:
   - <b>Windows</b>: `[drive]:\Program Files\Blender Foundation\Blender [version]\[version]\scripts\addons\`
-  - <b>Linux</b>: `C:\Program Files\Blender Foundation\Blender <blender version>\<blender version>\scripts\addons\`
-  - <b>Mac</b>: Go to `applications > blender` then right click on blender and select `show package contents`
+  - <b>Linux</b>: `/usr/share/blender/[version]/scripts/addons/`
+  - <b>Mac</b>: 
+    - Go to `Applications > Blender` then right click on blender and select `Show Package Contents`
 ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_install_00.png)
 
-Then navigate to `contents > resources > [version] > scripts > addons` and place the meshcapade addon inside the `addons` folder
+    - Then navigate to `contents > resources > [version] > scripts > addons` and place the meshcapade addon inside the `addons` folder
 
 - Inside Blender, go to `Edit > Preferences`, and select `Add-ons` from the left bar
 - Search for `Meshcapade` in the search bar on the top right
+- If you don't see the plugin, hit refresh in the top right corner.  If you still don't see it, try restarting Blender.
 - If the plugin is not enabled, check the box next to the plugin name to enable it
 ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/blender_addon_00.png)
 
@@ -79,7 +79,7 @@ This will be slightly different depending on your Linux distribution.
 - Open the terminal and go to the location of your blender executable.  
 - You can also navigate there in the folder view and then launch the terminal from that location.
 ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/linux_terminal_00.png)
-- In the terminal, type `./blender` and press enter.  This will launch blender from the terminal.
+- In the terminal, type `blender` and press enter.  This will launch blender from the terminal.
 
 
 ## Licenses
