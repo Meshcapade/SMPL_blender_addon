@@ -4,8 +4,6 @@ from bpy.props import (
     EnumProperty,
     FloatProperty,
     PointerProperty,
-    StringProperty,
-    CollectionProperty,
 )
 from bpy.types import (
     PropertyGroup,
