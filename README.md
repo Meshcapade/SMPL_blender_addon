@@ -3,9 +3,9 @@ This addon is an extension of the [SMPL-X Blender addon](https://www.youtube.com
 
 For academic uses, please visit: https://smpl-x.is.tue.mpg.de/. Or contact us at support@meshcapade.com
 
-# SMPL-X and Meshcape Utilities Blender Add-on
+# Meshcape Utilities Blender Add-on
 
-This add-on allows you to add [SMPL-H](https://smpl-x.is.tue.mpg.de), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported mesh consists of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
+This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) skinned meshes to your current Blender scene. Each imported mesh consists of a shape specific rig, as well as shape keys (blend shapes) for shape, expression and pose correctives.
 
 - Requirements:
   - Newest version developed in 3.5.1
@@ -14,41 +14,32 @@ This add-on allows you to add [SMPL-H](https://smpl-x.is.tue.mpg.de), [SMPL-X](h
   - [Git LFS](https://git-lfs.github.com/) (for assets to build releases)
   - Flake8 (linting)
 - Additional dependencies: None
-- Used SMPL-X model: SMPL-X v1.1 with 10 shape components, 10 expression components
 
 # Features
 
-## SMPL-X
-
-- Add female/male/neutral specific SMPL-X mesh to current scene
+## SMPL versions
+- Add female/male/neutral SMPLH/SMPLX/SUPR meshes to current scene
 - Set sample albedo texture
-- Set body shape from height and weight measurements
-- Randomize/reset shape
-- Update joint locations
+- Set body shape from height and weight measurements* 
+- Randomize/reset body shape*
+- Randomize/reset face expression shape*
+- Randomize/reset face shape*
+- Update joint locations*
 - Position feet on ground plane (z=0)
-- Randomize/reset face expression shape
-- Enable/disable corrective poseshapes
+- Enable/disable corrective poseshapes 
 - Change hand pose (flat, relaxed)
-- Write current pose in SMPL-X theta notation to console
-- Load pose from .pkl file (full pose with 55 joints in Rodrigues notation)
-- FBX export to Unity
-
-  - Exports mesh in default T-Pose with flat hands
-  - Imported FBX will show up in Unity inspector without rotations and without scaling
-  - Shape key export options:
-
-    - Body shape and posecorrectives
-    - Body shape without posecorrectives
-    - None (bakes current body shape into mesh)
-
-## Meshcapade Utilities
-
-- Batch convert OBJ or FBX UV formats
+- Write current pose in theta notation to console and console
+- Load avatar from .npz file
+*(not SMPLH)
 
 ## Installation
-- Download the zipped data file containing SMPL Model from the link provided to you at the time you recevied a link to this repo. If you do not have this link, please contact support@meshcapade.com for help.
-- Place the data file (it will be a file with naming of the form: `smplx_blender_YYYYMMDD.zip`) inside the folder containing the SMPL blenderadd-on code. Do not unzip.
-- Within Blender (2.92+), under Edit -> Preferences navigate to the Add-ons tab
+- Download the zipped data folder containing SMPL model files for which you have a SMPL-Commercial use license.  If you do not have this link, please contact support@meshcapade.com for help.
+- Unzip the data folder and place it inside the 'meshcapade/meshcapade_addon' folder.
+- Place that folder inside your blender folder here:
+  - windows: C:\Program Files\Blender Foundation\Blender 3.5\3.5\scripts\addons
+  - 
+  - 
+- Within Blender (3.5+), under Edit -> Preferences navigate to the Add-ons tab
 - Click the Install button on the upper right, navigate to and select the downloaded zip file, and click 'Install Add-on'
 - Once loaded, check the box next to the now appeared add-on title to activate.
 
@@ -67,7 +58,7 @@ Run:
 python build/make_addon.py
 ```
 
-This wraps all python files and assets in the `smplx_blender/data` folder into a zip that can be installed by Blender as an addon.
+This wraps all python files and assets in the `meshcapade/meshcapade_addon/data` folder into a zip that can be installed by Blender as an addon.
 
 Be sure to have had Git LFS installed, and pulled, in order to obtain said assets.
 
@@ -89,7 +80,7 @@ Be sure to have had Git LFS installed, and pulled, in order to obtain said asset
 https://www.gnu.org/licenses/gpl-3.0.en.html
 
 
-- The SMPL, SMPL+H, SMPL-X, or SUPR model files used in or by this repo are available only under the SMPL-Commercial use license. Before using this product, please make sure you have an active SMPL Model commercial-use license. See models_license.md for further license information about SMPL & SMPL-X.
+- The SMPL, SMPL-H, SMPL-X, or SUPR model files used in or by this repo are available only under the SMPL-Commercial use license. Before using this product, please make sure you have an active SMPL Model commercial-use license. See models_license.md for further license information about SMPL & SMPL-X.
 
 
 - Body meshes generated using this add-on are covered under the SMPL-Body Creative-Commons-BY license: https://smpl.is.tue.mpg.de/bodylicense.html
