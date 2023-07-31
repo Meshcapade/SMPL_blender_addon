@@ -381,7 +381,7 @@ class OP_SetTexture(bpy.types.Operator):
         nodes = node_tree.nodes
 
         # if they selected the male or female texture, we add the normal map and roughness map as well
-        if (selection == 'm' or selection == 'f'):
+        if selection in ('m', 'f'):
             # Set the path to the texture files
             albedo_map_path = os.path.join(PATH, "data", selection + "_albedo.png")
             normal_map_path = os.path.join(PATH, "data", selection + "_normal.png")
@@ -811,7 +811,7 @@ class OP_SnapToGroundPlane(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if mesh or armature is active object
-            return ((context.object.type == 'MESH') or (context.object.type == 'ARMATURE'))
+            return context.object.type in ('MESH', 'ARMATURE')
         except: return False
 
     def execute(self, context):
@@ -1000,13 +1000,13 @@ class OP_CalculatePoseCorrectives(bpy.types.Operator):
         joint_names = get_joint_names(SMPL_version)
         num_joints = len(joint_names)
         
-        if (SMPL_version == 'SMPLX' or SMPL_version == 'SMPLH'):
+        if SMPL_version in ('SMPLX', 'SMPLH'):
             rod_rots = np.asarray(pose).reshape(num_joints, 3)
             mat_rots = [self.rodrigues_to_mat(rod_rot) for rod_rot in rod_rots]
             bshapes = np.concatenate([(mat_rot - np.eye(3)).ravel() for mat_rot in mat_rots[1:]])
             return(bshapes)
 
-        elif (SMPL_version == 'SUPR'):
+        elif SMPL_version == 'SUPR':
             rod_rots = np.asarray(pose).reshape(num_joints, 3)
             quats = [self.rodrigues_to_quat(rod_rot) for rod_rot in rod_rots]
             for q in quats:
@@ -1193,7 +1193,7 @@ class OP_WritePoseToConsole(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if mesh or armature is active object
-            return (context.object.type == 'MESH') or (context.object.type == 'ARMATURE')
+            return context.object.type in ('MESH', 'ARMATURE')
         except: return False
 
     def execute(self, context):
@@ -1241,7 +1241,7 @@ class OP_WritePoseToJSON(bpy.types.Operator, ExportHelper):
     def poll(cls, context):
         try:
             # Enable button only if mesh or armature is active object
-            return (context.object.type == 'MESH') or (context.object.type == 'ARMATURE')
+            return context.object.type in ('MESH', 'ARMATURE')
         except Exception:
             return False
 
@@ -1402,6 +1402,8 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                 data = np.load(f, allow_pickle=True)
             elif (extension == ".npy"):
                 data = np.load(f, allow_pickle=True)
+            elif (extension == ".json"):
+                data = json.load(f)
 
             if "global_orient" in data:
                 global_orient = np.array(data["global_orient"]).reshape(3)
