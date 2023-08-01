@@ -17,7 +17,6 @@ from bpy_extras.io_utils import (
 )
 from .globals import (
     SMPLX_MODELFILE,
-    SMPLX_MODELFILE_300,
     SMPLH_MODELFILE,
     SUPR_MODELFILE,
     PATH,
@@ -295,24 +294,17 @@ class OP_CreateAvatar(bpy.types.Operator):
 
         if (SMPL_version == 'SMPLX'):
             # Use 300 shape model by default if available
-            model_path = os.path.join(PATH, "data", SMPLX_MODELFILE_300)
-            if os.path.exists(model_path):
-                model_file = SMPLX_MODELFILE_300
-            else:
-                model_file = SMPLX_MODELFILE
+            model_file = SMPLX_MODELFILE
 
         elif (SMPL_version == 'SUPR'):
-            model_path = os.path.join(PATH, "data", SUPR_MODELFILE)
             model_file = SUPR_MODELFILE
 
         # for now, the SMPLH option has been removed from the properties because we don't have regressors for it, 
         # so afm and a bunch of other stuff doesn't work
         elif (SMPL_version == "SMPLH"):
-            model_path = os.path.join(PATH, "data", SMPLH_MODELFILE)
             model_file = SMPLH_MODELFILE
 
         else:
-            model_path = "error bad SMPL_version"
             model_file = "error bad SMPL_version"
 
         objects_path = os.path.join(PATH, "data", model_file, "Object")

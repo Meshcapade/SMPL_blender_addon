@@ -4,8 +4,7 @@ import numpy as np
 
 VERSION = (2023, 8, 1)
 
-SMPLX_MODELFILE = "smplx_model_20210421.blend"
-SMPLX_MODELFILE_300 = "smplx_model_300_20220615.blend"
+SMPLX_MODELFILE = "smplx.blend"
 SUPR_MODELFILE = "supr.blend"
 SMPLH_MODELFILE = "smplh.blend"
 
