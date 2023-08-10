@@ -608,7 +608,7 @@ class OP_RandomBodyShape(bpy.types.Operator):
         for i in range(0, 10):
             key_name = f"Shape{'%0.3d' % i}"
             key_block = obj.data.shape_keys.key_blocks.get(key_name)
-            beta = np.random.normal(0.0, 1.0) * .5 * context.window_manager.smpl_tool.random_body_mult
+            beta = np.random.normal(0.0, 1.0) * .75 * context.window_manager.smpl_tool.random_body_mult
             key_block.value = beta
 
         bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
@@ -639,11 +639,9 @@ class OP_RandomFaceShape(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
 
         for i in range(10,299):
-            i_as_a_string = '%0.3d' % i
-            key_name = f"Shape{i_as_a_string}"
+            key_name = f"Shape{'%0.3d' % i}"
             key_block = obj.data.shape_keys.key_blocks.get(key_name)
-            beta = np.random.normal(0.0, 1.0) * .5 * context.window_manager.smpl_tool.random_face_mult
-            #beta = np.clip(beta, -1.0, 1.0)
+            beta = np.random.normal(0.0, 1.0) * .75 * context.window_manager.smpl_tool.random_face_mult
             key_block.value = beta
 
         bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
@@ -744,20 +742,12 @@ class OP_RandomExpressionShape(bpy.types.Operator):
         except: return False
 
     def execute(self, context):
-        SMPL_version = bpy.context.object['SMPL_version']
         obj = bpy.context.object
         bpy.ops.object.mode_set(mode='OBJECT')
-        
-        if (SMPL_version == 'SMPLX'):
-            starting_string = 'Exp'
-            distribution_range = 2
-        elif (SMPL_version == 'SUPR'):
-            starting_string = 'Shape3'  # the last 100 shape keys, 300 - 399, are expression keys
-            distribution_range = 1.5    # 2 here gets kind of crazy sometimes so I scaled it back
 
         for key_block in obj.data.shape_keys.key_blocks:
-            if key_block.name.startswith(starting_string):
-                key_block.value = np.random.uniform(-distribution_range, distribution_range)
+            if key_block.name.startswith('Exp'):
+                key_block.value = np.random.uniform(-1.5, 1.5)
 
         return {'FINISHED'}
 
@@ -779,15 +769,8 @@ class OP_ResetExpressionShape(bpy.types.Operator):
         obj = bpy.context.object
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        SMPL_version = bpy.context.object['SMPL_version']
-
-        if (SMPL_version == 'SMPLX'):
-            starting_string = 'Exp'
-        elif (SMPL_version == 'SUPR'):
-            starting_string = 'Shape3'  # the last 100 shape keys, 300 - 399, are expression keys
-    
         for key_block in obj.data.shape_keys.key_blocks:
-            if key_block.name.startswith(starting_string):
+            if key_block.name.startswith('Exp'):
                 key_block.value = 0.0
 
         return {'FINISHED'}
@@ -1563,10 +1546,7 @@ class OP_SetExpressionPreset(bpy.types.Operator):
             return {"CANCELLED"}
 
         for i, value in enumerate(preset_values):
-            if (SMPL_version == 'SMPLX'):
-                key_name = f"Exp00{i}"
-            elif (SMPL_version == 'SUPR'):
-                key_name = f"Shape{i+300}"
+            key_name = f"Exp{i:03}"
             key_block = obj.data.shape_keys.key_blocks.get(key_name)
             if key_block:
                 key_block.value = value

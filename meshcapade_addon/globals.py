@@ -2,7 +2,7 @@ import os
 import platform
 import numpy as np
 
-VERSION = (2023, 8, 1)
+VERSION = (2023, 9, 1)
 
 SMPLX_MODELFILE = "smplx.blend"
 SUPR_MODELFILE = "supr.blend"
@@ -32,8 +32,8 @@ SMPLX_JOINT_NAMES = [
     'left_wrist',
     'right_wrist',
     'jaw',
-    'left_eye_smplhf',
-    'right_eye_smplhf',
+    'left_eye',
+    'right_eye',
     'left_index1',
     'left_index2',
     'left_index3',

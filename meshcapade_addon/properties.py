@@ -96,15 +96,15 @@ class PG_SMPLProperties(PropertyGroup):
     )
 
     random_body_mult: FloatProperty(
-        name="Body Multiplier",
-        default=1.5, 
+        name="Body Randomization Multiplier",
+        default=1, 
         min=0, 
         max=5
     )
     
     random_face_mult: FloatProperty(
-        name="Face Multiplier", 
-        default=1.5, 
+        name="Face Randomization Multiplier", 
+        default=1, 
         min=0, 
         max=5
     )
