@@ -7,7 +7,7 @@ This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](ht
 
 # Features
 
-## SMPL versions
+## Overview
 - Add female/male/neutral SMPLH/SMPLX/SUPR bodies to current scene<sup>2</sup> 
 - Set sample materials
 - Load avatar from .npz file<sup>2</sup> 
@@ -81,6 +81,40 @@ This will be slightly different depending on your Linux distribution.
 ![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/linux_terminal_00.png)
 - In the terminal, type `blender` and press enter.  This will launch blender from the terminal.
 
+
+## Getting avatars inside Blender
+
+There are a few ways to get Meshcapade avatars into Blender.  One way is to create and download free avatars from our platform, meshcapade.me.  You can create up to 5 free avatars a day, or you can purchase credits to be able to do more than that.  
+
+Academic or commercial license customers can get an additional component to the plugin that allows them to add an unlimited number of SMPL bodies directly to their scenes.  They can either create avatars from scratch, or they can load .npz files that contain not only body shape definitions but animations as well.  Both of these methods support SMPLH (to a limited extent), SMPLX and SUPR bodies and you can create an unlimited number of avatars using these two methods.
+
+## Pose Correctives
+
+Meshcapade avatars have a built in component that allows for statistically accurate pose based deformations.  Once a Meshcapade avatar is in your Blender scene, you can animate or pose it as you normally would.  Click the `Calculate Pose Correctives` button for a single frame or `Calculate Pose Correctives for Entire Sequence` for an animation sequence.  This feature is available for non licensed use of our Blender plugin.
+
+Note: A bug exists in Blender up to and including LTS 6.1 in which imported .fbx files have their blend shapes clamped to 0 and 1.  The pose correctives can have values that are less than 0 and greater than 1, so this is a problem here.  After importing your .fbx, click the `Fix Blend Shape Ranges` button on the plugin and it will set all the blend shape ranges to the highest and lowest possible values blender allows: 10 and -10.  This is a known issue which Blender has already addressed, it just hasn’t been released as of my writing this.
+
+More information about the commercial and R&D licenses can be found [on our website](https://meshcapade.com/assets/body-models) or by contacting sales@meshcapade.com.
+
+## Facial Expressions
+
+SMPLX and SUPR bodies have facial expression support.  The plugin comes with 6 pre-baked facial expressions (Pleasant, Happy, Excited, Sad, Frustrated, and Angry), a `Random Facial Expression` button, and a `Reset` button to set the facial expression back to normal.  For finer control of the facial expressions, select the mesh in Object Mode and open the Object Data Properties tab.  Under Shape Keys, you can edit th eshape keys that start with `Exp` to modify the facial expression.
+
+## Modifying Shape and Loading Poses
+
+If you have the additional data folder, you have access to a few more features of the plugin.  The first is modifying the body shape.  There are sliders to change the avatar’s height and weight, along with `Random Body Shape` and `Random Face Shape` buttons.  The joint locations are automatically updated if you use any of the body shape modification tools from the plugin.  You can also fine tune the shape of your avatar using the `Shape` blend shapes in the Object Data Properties panel.  If you do that, you need to manually click the `Update Joint Locations` button to calculate the new joint locations.
+
+Along with this, you can also load in poses onto your avatars if you have .npz files that contain animation data (like [AMASS](https://amass.is.tue.mpg.de/), which is free for non-commercial scientific research).  If you are loading a pose, be sure to select the correct up-axis in the import options in the top right corner of the popup dialogue.
+
+## Additional Tools
+
+The `Fix Pose Correctives for Entire Sequence` button is explained in the Pose Correctives section.  
+
+Meshcapade avatars have additional metadata on them that tell the plugin what gender and SMPL version the selected avatar is.  When you click the `Modify Metadata` button, the `SMPL version` and `gender` in the `Create` section will be written on the selected avatar.  You only need to use this if you are trying to use the plugin with older avatars that do not have this data encoded on them.  You can also use this to change metadata on an avatar that already has metadata on it, but this will likely cause problems.
+
+`Read Metadata` writes the metadata to the console.
+
+The two `Write Pose` buttons are so that you can see the poses in SMPL format.  This is something our internal machine learning scientists need.
 
 ## Licenses
 
