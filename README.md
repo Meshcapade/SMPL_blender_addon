@@ -1,9 +1,10 @@
 # About
 This addon is an extension of the [SMPL-X Blender addon](https://www.youtube.com/watch?v=DY2k29Jef94) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL-H, SMPL-X, STAR and SUPR) from Max Planck Institute, and is making this extension of the blender add-on available for commercial users who have an active license for the SMPL Model. 
 
-Academic use of this plugin is free - just contact us at support@meshcapade.com.
+This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) bodies to your current Blender scene. Each body consists of a mesh, a shape specific rig, and shape keys (blend shapes) for shape, expression and pose correctives.
 
-This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) bodies to your current Blender scene. Each body consists of a mesh, a shape specific rig, and shape keys (blend shapes) for shape, expression and pose correctives. This addon was most recently developed in Blender 3.5.1.
+# Licensed Users
+The plugin as it exists here is free for all uses.  However, there are certain features that require an additional data folder which you get as part of being a licensed user.  Academic licenses are free.  More information about academic, commercial and R&D licenses can be found [on our website](https://meshcapade.com/assets/body-models) or by contacting sales@meshcapade.com.
 
 # Features
 
@@ -30,9 +31,11 @@ This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](ht
 </font>
 
 ## Installation
-- Download the zipped data folder containing SMPL model files for which you have a SMPL-Commercial use license.  If you do not have this link, please contact support@meshcapade.com for help.
-- Unzip the data folder and place it inside the 'meshcapade/meshcapade_addon' folder.
-- Place that folder inside your Blender folder's addon folder here:
+- [Download](https://github.com/Meshcapade/SMPL_blender_addon/archive/refs/heads/main.zip) or pull the plugin from github.
+- [Licensed Users](https://github.com/Meshcapade/SMPL_blender_addon/tree/nathan/supr-update-blender#licensed-users) - setup the data folder.
+  - Download the zipped data folder.
+  - Unzip the data folder and place it inside the 'meshcapade/meshcapade_addon' folder.
+- Place the Blender addon inside your Blender folder's addon folder here:
   - <b>Windows</b>: `[drive]:\Program Files\Blender Foundation\Blender [version]\[version]\scripts\addons\`
   - <b>Linux</b>: `/usr/share/blender/[version]/scripts/addons/`
   - <b>Mac</b>: 
@@ -52,8 +55,8 @@ This add-on allows you to add [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](ht
 
 ## Notes
 
-- The add-on GUI (gender, texture, hand pose) does not reflect the state of the currently selected model if you work with multiple models in one scene.
-- To maintain editor responsiveness the add-on does not automatically recalculate the corrective pose shape keys when edit the armature pose. Use the `Update Pose Shapes` button to update the joint locations after pose changes.
+- The addon GUI (gender, texture, hand pose) does not reflect the state of the currently selected model if you work with multiple models in one scene.  It reflects the state of the last model you worked with. 
+- To maintain editor responsiveness the addon does not automatically recalculate the corrective pose shape keys when edit the armature pose. Use the `Update Pose Shapes` button to update the joint locations after pose changes.
 
 ### Terminal
 Opening the terminal window will allow you to see the output of any running script.  It's particularly helpful for displaying progress of lengthier operations, since the UI doesn't show any info.  To achieve this with Linux or Mac, you need to launch Blender from the terminal.  
@@ -94,7 +97,7 @@ Meshcapade avatars have a built in component that allows for statistically accur
 
 Note: A bug exists in Blender up to and including LTS 6.1 in which imported .fbx files have their blend shapes clamped to 0 and 1.  The pose correctives can have values that are less than 0 and greater than 1, so this is a problem here.  After importing your .fbx, click the `Fix Blend Shape Ranges` button on the plugin and it will set all the blend shape ranges to the highest and lowest possible values blender allows: 10 and -10.  This is a known issue which Blender has already addressed, it just hasn’t been released as of my writing this.
 
-More information about the commercial and R&D licenses can be found [on our website](https://meshcapade.com/assets/body-models) or by contacting sales@meshcapade.com.
+More information about academic, commercial and R&D licenses can be found [on our website](https://meshcapade.com/assets/body-models) or by contacting sales@meshcapade.com.
 
 ## Facial Expressions
 

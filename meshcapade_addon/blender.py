@@ -1,7 +1,5 @@
 import bpy
 from .globals import (
-    FBX_TYPE,
-    OBJ_TYPE,
     SUPR_JOINT_NAMES,
     SMPLH_JOINT_NAMES,
     SMPLX_JOINT_NAMES,
@@ -25,27 +23,27 @@ def get_joint_names(SMPL_version):
 
 def get_num_body_joints(SMPL_version):
     return 21
+    '''
     if (SMPL_version == 'SUPR'):
         return NUM_SUPR_BODY_JOINTS
     elif (SMPL_version == 'SMPLX'):
         return NUM_SMPLX_BODY_JOINTS
+    '''
 
 def get_num_hand_joints(SMPL_version):
     return 15
+    '''
     if (SMPL_version == 'SUPR'):
         return NUM_SUPR_HAND_JOINTS
     elif (SMPL_version == 'SMPLX'):
         return NUM_SMPLX_HAND_JOINTS    
-
+    '''  
 
 def setup_bone(bone, SMPL_version):
-    if (SMPL_version == 'SMPLX'):
+    # TODO add SMPLH support
+    if SMPL_version in ['SMPLX', 'SUPR']:
         bone.head = (0.0, 0.0, 0.0)
-        bone.tail = (0.0, 0.0, 0.1)
-
-    elif (SMPL_version == 'SUPR'):
-        bone.head = (0, 0, 0)
-        bone.tail = (0, 10, 0)
+        bone.tail = (0.0, 10, 0)
 
 
 def get_uv_obj_path(uv_type, resolution):
@@ -112,9 +110,9 @@ def export_fbx(path):
 def export_object(obj, export_type, path):
     deselect()
     select_object(obj, select_hierarchy=True)
-    if export_type == OBJ_TYPE:
+    if export_type == EXPORT_TYPE.OBJ.value:
         export_obj(path=path)
-    elif export_type == FBX_TYPE:
+    elif export_type == EXPORT_TYPE.FBX.value:
         export_fbx(path=path)
 
 

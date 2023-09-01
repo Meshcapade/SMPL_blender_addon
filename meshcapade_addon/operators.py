@@ -241,12 +241,8 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
 
             for bone_index, bone_name in enumerate(joints_to_use):
                 if bone_name == "pelvis":
-                    # for whatever reason, the AMASS animations for SMPLH and SUPR are 100 smaller than SMPLX
-                    mult = 100
-                    if (SMPL_version == 'SMPLX'):
-                        mult = 1
-
-                    armature.pose.bones[bone_name].location = Vector((current_trans[0] * mult, current_trans[1] * mult, current_trans[2] * mult))
+                    # there's a scale mismatch somewhere and the global translation is off by a factor of 100
+                    armature.pose.bones[bone_name].location = Vector((current_trans[0]*100, current_trans[1]*100, current_trans[2]*100))
                     armature.pose.bones[bone_name].keyframe_insert('location', frame=current_frame)
 
                 # Keyframe bone rotation
@@ -874,42 +870,12 @@ class OP_UpdateJointLocations(bpy.types.Operator):
         num_betas = len(betas)
         betas = np.array(betas)
 
-        # this seems like it's loading up every possibilty every time you click this button
-        # TODO: determine what you need and then only load what you need?
-        # Cache regressor files on first call
-        if (SMPL_version == 'SMPLX'):
-            self.j_regressor_female = { 10: None, 300: None }
-            self.j_regressor_male = { 10: None, 300: None }
-            self.j_regressor_neutral = { 10: None, 300: None }
-
-            for target_betas in [10, 300]:
-                if self.j_regressor_female[target_betas] is None:
-                    self.j_regressor_female[target_betas] = self.load_regressor("female", target_betas, SMPL_version.lower())
-
-                if self.j_regressor_male[target_betas] is None:
-                    self.j_regressor_male[target_betas] = self.load_regressor("male", target_betas, SMPL_version.lower())
-
-                if self.j_regressor_neutral[target_betas] is None:
-                    self.j_regressor_neutral[target_betas] = self.load_regressor("neutral", target_betas, SMPL_version.lower())
-
-        elif (SMPL_version == 'SUPR'):
-                self.j_regressor_female = { 400: None }
-                self.j_regressor_male = { 400: None }
-                self.j_regressor_neutral = { 300: None }
-                
-                self.j_regressor_female[400] = self.load_regressor("female", 400, SMPL_version.lower())
-                self.j_regressor_male[400] = self.load_regressor("male", 400, SMPL_version.lower())
-                self.j_regressor_neutral[300] = self.load_regressor("neutral", 300, SMPL_version.lower())               
-
-
-        if "female" in obj.name:
-            (betas_to_joints, template_j) = self.j_regressor_female[num_betas]
-        elif "male" in obj.name:
-            (betas_to_joints, template_j) = self.j_regressor_male[num_betas]
-        else:
-            (betas_to_joints, template_j) = self.j_regressor_neutral[num_betas]
-        
-
+        # "Cache regressor files"
+        # I think whoever wrote this thought they were caching everything, but they're really just doing it every time this is used, which is bad.
+        # TODO we need to actually cache all the files
+        self.j_regressor = { num_betas: None }
+        self.j_regressor[num_betas] = self.load_regressor(gender, num_betas, SMPL_version.lower())
+        (betas_to_joints, template_j) = self.j_regressor[num_betas]
         joint_locations = betas_to_joints @ betas + template_j
 
         # Set new bone joint locations
@@ -924,11 +890,8 @@ class OP_UpdateJointLocations(bpy.types.Operator):
             # Convert joint locations to Blender joint locations
             joint_location = joint_locations[index]
 
-            if (SMPL_version == 'SMPLX'):
-                bone_start = Vector((joint_location[0], -joint_location[2], joint_location[1]))
-
-            elif (SMPL_version == 'SUPR'):
-                bone_start = Vector((joint_location[0] * 100, joint_location[1] * 100, joint_location[2] * 100))
+            if SMPL_version in ['SMPLX', 'SUPR']:
+                bone_start = Vector((joint_location[0]*100, joint_location[1]*100, joint_location[2]*100))
 
             bone.translate(bone_start)
 

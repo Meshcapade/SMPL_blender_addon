@@ -1,6 +1,7 @@
 import os
 import platform
 import numpy as np
+from enum import Enum
 
 VERSION = (2023, 9, 1)
 
@@ -211,12 +212,11 @@ NUM_SMPLH_JOINTS = len(SMPLX_JOINT_NAMES)
 NUM_SMPLH_BODY_JOINTS = 21   
 NUM_SMPLH_HAND_JOINTS = 15   # must be per hand
 
-FBX_TYPE = "fbx"
-OBJ_TYPE = "obj"
-
+'''
 HIGH = "high"
 MEDIUM = "medium"
 LOW = "low"
+'''
 
 OS = platform.system()
 PATH = os.path.dirname(os.path.realpath(__file__))
@@ -228,23 +228,15 @@ except:
     LEFT_HAND_RELAXED = np.zeros(45)
     RIGHT_HAND_RELAXED = np.zeros(45)
 
+class RESOLUTION(Enum):
+    LOW = 6890
+    MEDIUM = 27578
+    HIGH = 110306
 
-RESOLUTIONS = [
-    HIGH,
-    MEDIUM,
-    LOW,
-]
+class UV_TYPE(Enum):
+    SMPL_V1 = "smpl_v1"
+    SMPL_V0 = "smpl_v0"
 
-RESOLUTION_MAPPING = {
-    6890: LOW,
-    27578: MEDIUM,
-    110306: HIGH,
-}
-
-SMPL_V1 = "smpl_v1"
-SMPL_V0 = "smpl_v0"
-
-UV_TYPES = [
-    SMPL_V1,
-    SMPL_V0,
-]
+class EXPORT_TYPE(Enum):
+    FBX = "fbx"
+    OBJ = "obj"
