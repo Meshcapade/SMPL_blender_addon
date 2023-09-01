@@ -985,7 +985,9 @@ class OP_CalculatePoseCorrectives(bpy.types.Operator):
 
         poseweights = self.rodrigues_to_posecorrective_weight(context, pose)
 
-        if (SMPL_version == 'SMPLH'):
+        # TODO for the time being, the SMPLX pose correctives only go to 0-206.  
+        # It should be 0-485, but we're not sure why the fingers aren't being written out of the blender-worker  
+        if SMPL_version in ['SMPLH', 'SMPLX']:
             poseweights_to_use = poseweights[0:207]
         else:
             poseweights_to_use = poseweights
@@ -1250,6 +1252,7 @@ class OP_ResetPose(bpy.types.Operator):
         return {'FINISHED'}
 
 
+# TODO once we have AFV, we need to replace this with load animation, so you can load any animation onto any body and treat them separately
 class OP_LoadPose(bpy.types.Operator, ImportHelper):
     bl_idname = "object.load_pose"
     bl_label = "Load Pose"
@@ -1278,11 +1281,14 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
         ]
     )
 
+    # taking this out for now
+    '''
     update_shape: BoolProperty(
         name="Update shape parameters",
         description="Update shape parameters using the beta shape information in the loaded file.  This is hard coded to false for SMPLH.",
-        default=True
+        default=False
     )
+    '''
 
     frame_number: IntProperty(
         name="Frame Number",
@@ -1316,10 +1322,6 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
             obj = armature.children[0]
             context.view_layer.objects.active = obj # mesh needs to be active object for recalculating joint locations
 
-        if (self.hand_pose != 'disabled'):
-            context.window_manager.smpl_tool.hand_pose = self.hand_pose
-            bpy.ops.object.set_hand_pose('EXEC_DEFAULT')
-
         print("Loading: " + self.filepath)
 
         translation = None
@@ -1345,6 +1347,28 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
 
             if "global_orient" in data:
                 global_orient = np.array(data["global_orient"]).reshape(3)
+
+            # it's not working anymore for some reason, but loading the betas onto a body isn't that useful because you could just load the body instead.  
+            '''
+            if (extension in ['.npz', 'pkl']):
+                betas = np.array(data["betas"]).reshape(-1).tolist()
+    
+            # Update shape if selected
+            # TODO once we get the SMPLH regressor, we can take the SMPLH part out of this
+            if self.update_shape and SMPL_version != 'SMPLH':
+                bpy.ops.object.mode_set(mode='OBJECT')
+
+                if (extension in ['.npz', 'pkl']):
+                    for index, beta in enumerate(betas):
+                        key_block_name = f"Shape{index:03}"
+
+                        if key_block_name in obj.data.shape_keys.key_blocks:
+                            obj.data.shape_keys.key_blocks[key_block_name].value = beta
+                        else:
+                            print(f"ERROR: No key block for: {key_block_name}")
+
+                bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
+            '''
 
             if (extension == '.pkl'):
                 body_pose = np.array(data['body_pose'])
@@ -1408,25 +1432,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                     pose_rodrigues = pose[index]
                     bone_name = joint_names[index]
                     set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
-               
-            if (extension in ['.npz', 'pkl']):
-                betas = np.array(data["betas"]).reshape(-1).tolist()
-
-        # Update shape if selected
-        # TODO once we get the SMPLH regressor, we can take the SMPLH part out of this
-        if self.update_shape and SMPL_version != 'SMPLH':
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            if (extension in ['.npz', 'pkl']):
-                for index, beta in enumerate(betas):
-                    key_block_name = f"Shape{index:03}"
-
-                    if key_block_name in obj.data.shape_keys.key_blocks:
-                        obj.data.shape_keys.key_blocks[key_block_name].value = beta
-                    else:
-                        print(f"ERROR: No key block for: {key_block_name}")
-
-            bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
+                       
 
         if global_orient is not None:
             set_pose_from_rodrigues(armature, "pelvis", global_orient)
@@ -1436,6 +1442,10 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
         if translation is not None:
             # Set translation
             armature.location = (translation[0], -translation[2], translation[1])
+
+        if (self.hand_pose != 'disabled'):
+            context.window_manager.smpl_tool.hand_pose = self.hand_pose
+            bpy.ops.object.set_hand_pose('EXEC_DEFAULT')
 
         # Activate corrective poseshapes
         bpy.ops.object.set_pose_correctives('EXEC_DEFAULT')
@@ -1473,6 +1483,7 @@ class OP_SetExpressionPreset(bpy.types.Operator):
     def execute(self, context):
         SMPL_version = bpy.context.object['SMPL_version']
 
+
         obj = context.object
         if not obj or not obj.data.shape_keys:
             self.report(
@@ -1481,18 +1492,18 @@ class OP_SetExpressionPreset(bpy.types.Operator):
             return {"CANCELLED"}
 
         if (SMPL_version == 'SMPLX'):
+            bpy.ops.object.reset_expression_shape('EXEC_DEFAULT')
             presets = {
-                "pleasant": [0, 0.30, 0, -0.30, -0.40, 0, -0.20, 0, 0.30, 0],
-                "happy": [0.93, 0, 0, 0, 0.27, 0, 0.29, 0, -1.00, 0],
-                "excited": [0, 0, 0, 0, 1.50, 0.90, 0, 0, -0.70, 0],
-                "sad": [-0.20, 0, 0, 0, -1.60, 0, -1.30, 0, 0.60, 0],
-                "frustrated": [0, 0.75, -1.20, 0.13, -0.60, 0.62, -0.90, -0.78, 0, -1.56],
-                "angry": [1.11, 1.69, -0.27, 0, -0.78, 0, -1.24, 1.29, -0.22, -2.00],
+                "pleasant": [0, .3, 0, -.892, 0, 0, 0, 0, -1.188, 0, .741, -2.83, 0, -1.48, 0, 0, 0, 0, 0, -.89, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .89, 0, 0, 2.67],
+                "happy": [0.9, 0, .741, -2, .27, -.593, -.29, 0, .333, 0, 1.037, -1, 0, .7, .296, 0, 0, -1.037, 0, 0, 0, 1.037, 0, 3],
+                "excited": [-.593, .593, .7, -1.55, -.32, -1.186, -.43, -.14, -.26, -.88, 1, -.74, 1, -.593, 0, 0, 0, 0, 0, 0, -.593],
+                "sad": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7.8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 2,2,-2, 1, 1.6, 2, 1.6],
+                "frustrated": [0, 0, -1.33, 1.63, 0, -1.185, 2.519, 0, 0, -.593, -.444],
+                "angry": [0, 0, -2.074, 1.185, 1.63, -1.78, 1.63, .444, .89, .74, -4, 1.63, -1.93, -2.37, -4],
             }
         
         elif (SMPL_version == 'SUPR'):
             bpy.ops.object.reset_expression_shape('EXEC_DEFAULT')
-
             presets = {
                 "pleasant": [0.3, 0, -0.2, 0, 0, 0, 0, 0, 0.3, 0.4],
                 "happy":  [1.3, 0, 0, 0, -0.3, 0, 0.7, 0, -1, 0],
