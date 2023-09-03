@@ -16,7 +16,6 @@ The plugin as it exists here is free for all uses.  However, there are certain f
 - Randomize/reset body shape<sup>1, 2</sup> 
 - Randomize/reset face shape<sup>1, 2</sup> 
 - Randomize/reset facial expression <sup>1, 2</sup> 
-- Update joint locations<sup>1, 2</sup> 
 - Position feet on ground plane
 - Enable/disable corrective poseshapes for a single frame or for multiple frames
 - Change hand pose (flat, relaxed)<sup>2</sup> 
@@ -105,7 +104,7 @@ SMPLX and SUPR bodies have facial expression support.  The plugin comes with 6 p
 
 ## Modifying Shape and Loading Poses
 
-If you have the additional data folder, you have access to a few more features of the plugin.  The first is modifying the body shape.  There are sliders to change the avatar’s height and weight, along with `Random Body Shape` and `Random Face Shape` buttons.  The joint locations are automatically updated if you use any of the body shape modification tools from the plugin.  You can also fine tune the shape of your avatar using the `Shape` blend shapes in the Object Data Properties panel.  If you do that, you need to manually click the `Update Joint Locations` button to calculate the new joint locations.
+If you have the additional data folder, you have access to a few more features of the plugin.  The first is modifying the body shape.  There are sliders to change the avatar’s height and weight, along with `Random Body Shape` and `Random Face Shape` buttons.  The joint locations are automatically updated if you use any of the body shape modification tools from the plugin.  You can also fine tune the shape of your avatar using the `Shape` blend shapes in the Object Data Properties panel. 
 
 Along with this, you can also load in poses onto your avatars if you have .npz files that contain animation data (like [AMASS](https://amass.is.tue.mpg.de/), which is free for non-commercial scientific research).  If you are loading a pose, be sure to select the correct up-axis in the import options in the top right corner of the popup dialogue.
 

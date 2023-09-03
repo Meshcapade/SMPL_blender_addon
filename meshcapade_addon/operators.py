@@ -866,7 +866,10 @@ class OP_UpdateJointLocations(bpy.types.Operator):
         betas = []
         for key_block in obj.data.shape_keys.key_blocks:
             if key_block.name.startswith("Shape"):
-                betas.append(key_block.value)
+                if not key_block.mute:
+                    betas.append(key_block.value)
+                else: #if the value is unchecked in the gui, it's regarded as zero
+                    betas.append(0.0)
         num_betas = len(betas)
         betas = np.array(betas)
 
