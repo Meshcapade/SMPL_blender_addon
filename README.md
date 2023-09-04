@@ -10,7 +10,7 @@ The plugin as it exists here is free for all uses. However, there are certain fe
 # Features
 
 ## Overview
-- Add female/male/neutral bodies for the SMPLH/SMPLX/SUPR model to current scene<sup>2</sup> 
+- Add female/male/neutral bodies for the SMPL-H/SMPL-X/SUPR model to current scene<sup>2</sup> 
 - Set sample materials
 - Load avatar (body shape and motion) from .npz file<sup>2</sup> 
 - Set body shape from height and weight measurements<sup>1, 2</sup> 
@@ -26,7 +26,7 @@ The plugin as it exists here is free for all uses. However, there are certain fe
 - Set the blendshape range of all shape keys to -10 and 10, to bypass a current bug in Blender when importing .fbx files with shape keys on them
 <br>
 <font size=2>
-  <sup>1</sup>not SMPLH
+  <sup>1</sup>not SMPL-H
   <br>
   <sup>2</sup>licensed users only
 </font>
@@ -90,7 +90,7 @@ This will be slightly different depending on your Linux distribution.
 
 There are a few ways to get Meshcapade avatars into Blender. One way is to create and download free avatars from our platform, [meshcapade.me](meshcapade.me). You can create up to 5 free avatars a day, or you can purchase credits to be able to do more than that.
 
-Academic or commercial license customers of the SMPL Model (aka Licensed Users) can get an additional component to the plugin that allows them to add an unlimited number of SMPL bodies directly to their scenes.  They can either create avatars from scratch, or they can load .npz files that contain not only body shape definitions but animations as well.  Both of these methods support SMPLH (to a limited extent), SMPLX and SUPR bodies and you can create an unlimited number of avatars using these two methods.
+Academic or commercial license customers of the SMPL Model (aka Licensed Users) can get an additional component to the plugin that allows them to add an unlimited number of SMPL bodies directly to their scenes.  They can either create avatars from scratch, or they can load .npz files that contain not only body shape definitions but animations as well.  Both of these methods support SMPL-H (to a limited extent), SMPL-X and SUPR bodies and you can create an unlimited number of avatars using these two methods.
 
 ## Pose Correctives
 
@@ -102,7 +102,7 @@ More information about academic, commercial and R&D licenses can be found [on ou
 
 ## Facial Expressions
 
-SMPLX and SUPR bodies have facial expression support.  The plugin comes with 6 pre-baked facial expressions (Pleasant, Happy, Excited, Sad, Frustrated, and Angry), a `Random Facial Expression` button, and a `Reset` button to set the facial expression back to normal.  For finer control of the facial expressions, select the mesh in Object Mode and open the Object Data Properties tab.  Under Shape Keys, you can edit th eshape keys that start with `Exp` to modify the facial expression.
+SMPL-X and SUPR bodies have facial expression support.  The plugin comes with 6 pre-baked facial expressions (Pleasant, Happy, Excited, Sad, Frustrated, and Angry), a `Random Facial Expression` button, and a `Reset` button to set the facial expression back to normal.  For finer control of the facial expressions, select the mesh in Object Mode and open the Object Data Properties tab.  Under Shape Keys, you can edit th eshape keys that start with `Exp` to modify the facial expression.
 
 ## Modifying Shape and Loading Poses
 
@@ -133,7 +133,7 @@ The SMPL, SMPL-H, SMPL-X, or SUPR model files used in or by this repo are availa
 - Attribution for publications:
   - You agree to cite the most recent paper describing the model as specified on the appropriate model website: 
     - SMPL: https://smpl.is.tue.mpg.de/
-    - SMPLH: https://mano.is.tue.mpg.de
+    - SMPL-H: https://mano.is.tue.mpg.de
     - SMPL-X: https://smpl-x.is.tue.mpg.de
     - SUPR: https://supr.is.tue.mpg.de/
 
@@ -148,7 +148,7 @@ The SMPL, SMPL-H, SMPL-X, or SUPR model files used in or by this repo are availa
 - 20210525: Replaced vertices-to-joints regressor with beta-to-joints regressor. Added rainbow texture (CC BY-NC 4.0).
 - 20210611: Added option to set shape from height and weight values for female and male models
 - 20210820: Created Meshcapade fork
-- 20230904: Plugin overhaul.  Added SUPR and limited SMPLH support to the plugin.   
+- 20230904: Plugin overhaul.  Added SUPR and limited SMPL-H support to the plugin.   
 
 ## Contact
 
