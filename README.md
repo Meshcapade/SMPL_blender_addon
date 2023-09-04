@@ -96,7 +96,7 @@ Academic or commercial license customers of the SMPL Model (aka Licensed Users) 
 
 Meshcapade avatars have a built in component that allows for statistically accurate pose based deformations.  Once a Meshcapade avatar is in your Blender scene, you can animate or pose it as you normally would.  Click the `Calculate Pose Correctives` button for a single frame or `Calculate Pose Correctives for Entire Sequence` for an animation sequence.  This feature is available for all users of our Blender plugin.
 
-Note: A bug exists in Blender up to and including LTS 6.1 in which imported .fbx files have their blendshapes clamped to 0 and 1.  The pose correctives can have values that are less than 0 and greater than 1, so this is a problem here.  After importing your .fbx, click the `Fix Blendshape Ranges` button on the plugin and it will set all the blendshape ranges to the highest and lowest possible values blender allows: 10 and -10.  This is a known issue which Blender has already addressed, it just hasn’t been released as of my writing this.
+Note: A bug exists in Blender up to and including LTS 3.6.1 in which imported .fbx files have their blendshapes clamped to 0 and 1.  The pose correctives can have values that are less than 0 and greater than 1, so this is a problem here.  After importing your .fbx, click the `Fix Blendshape Ranges` button on the plugin and it will set all the blendshape ranges to the highest and lowest possible values blender allows: 10 and -10.  This is a known issue which Blender has already addressed, it just hasn’t been released as of my writing this.
 
 More information about academic, commercial and R&D licenses can be found [on our website](https://meshcapade.com/assets/body-models) or by contacting sales@meshcapade.com.
 
