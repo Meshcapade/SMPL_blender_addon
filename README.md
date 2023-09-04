@@ -33,7 +33,7 @@ The plugin as it exists here is free for all uses. However, there are certain fe
 
 ## Installation
 - [Download](https://github.com/Meshcapade/SMPL_blender_addon/archive/refs/heads/main.zip) or pull the plugin from github.
-- [Licensed Users](https://github.com/Meshcapade/SMPL_blender_addon/tree/nathan/supr-update-blender#licensed-users) - setup the data folder.
+- [Licensed Users](#licensed-users) - setup the data folder.
   - Download the zipped data folder.
   - Unzip the data folder and place it inside the 'meshcapade/meshcapade_addon' folder.
 - Place the Blender addon inside your Blender folder's addon folder here:
@@ -41,7 +41,7 @@ The plugin as it exists here is free for all uses. However, there are certain fe
   - <b>Linux</b>: `/usr/share/blender/[version]/scripts/addons/`
   - <b>Mac</b>: 
     - Go to `Applications > Blender` then right click on blender and select `Show Package Contents`
-![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_install_00.png)
+![image](/images/mac_install_00.png)
 
     - Then navigate to `contents > resources > [version] > scripts > addons` and place the meshcapade addon inside the `addons` folder
 
@@ -49,10 +49,10 @@ The plugin as it exists here is free for all uses. However, there are certain fe
 - Search for `Meshcapade` in the search bar on the top right
 - If you don't see the plugin, hit refresh in the top right corner.  If you still don't see it, try restarting Blender.
 - If the plugin is not enabled, check the box next to the plugin name to enable it
-![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/blender_addon_00.png)
+![image](/images/blender_addon_00.png)
 
 - To open the addon panel, click the tiny arrow on the top right of the viewport below the viewport shading options. 
-![image](https://raw.githubusercontent.com/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/blender_addon_01.gif)
+![image](/images/blender_addon_01.gif)
 
 ## Notes
 
@@ -64,17 +64,17 @@ Opening the terminal window will allow you to see the output of any running scri
 #### <b>Windows</b>
 Click `Window` > `Toggle System Console`
   
-![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/windows_terminal_00.png)
+![image](/images/windows_terminal_00.png)
 
 #### <b>Mac</b>
 - press command + space and type `terminal` and press enter
-![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_terminal_00.png)
+![image](/images/mac_terminal_00.png)
   
 - leave the terminal window open and open up the applications folder in another window
 - find Blender, right click on it, and select `Show Package Contents`
 - That will open a new folder.  Select `Contents` > `MacOS`
 - Inside that folder will be a single file called `Blender`.  Click and drag `Blender` onto the terminal window you opened in the first step. 
-![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/mac_terminal_01.png)
+![image](/images/mac_terminal_01.png)
 
 - Press enter and it will launch blender from the terminal.
 
@@ -82,7 +82,7 @@ Click `Window` > `Toggle System Console`
 This will be slightly different depending on your Linux distribution.
 - Open the terminal and go to the location of your blender executable.  
 - You can also navigate there in the folder view and then launch the terminal from that location.
-![image](https://media.githubusercontent.com/media/Meshcapade/SMPL_blender_addon/nathan/supr-update-blender/images/linux_terminal_00.png)
+![image](/images/linux_terminal_00.png)
 - In the terminal, type `blender` and press enter.  This will launch blender from the terminal.
 
 
