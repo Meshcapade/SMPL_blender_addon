@@ -57,7 +57,7 @@ The plugin as it exists here is free for all uses. However, there are certain fe
 ## Notes
 
 - The addon GUI (gender, texture, hand pose) does not reflect the state of the currently selected model if you work with multiple models in one scene.  It reflects the state of the last model you worked with. 
-- To maintain editor responsiveness the addon does not automatically recalculate the corrective pose shape keys when edit the armature pose. Use the `Update Pose Shapes` button to update the joint locations after pose changes.
+- To maintain editor responsiveness the addon does not automatically recalculate the pose corrective blendshapes when editing the armature pose. Use the `Update Pose Shapes` button to update the pose corrective blendshapes after pose changes.
 
 ### Terminal
 Opening the terminal window will allow you to see the output of any running script.  It's particularly helpful for displaying progress of lengthier operations, since the UI doesn't show any info.  To achieve this with Linux or Mac, you need to launch Blender from the terminal.  
@@ -138,7 +138,7 @@ https://www.gnu.org/licenses/gpl-3.0.en.html
 
 ## Acknowledgements
 
-- [Joachim Tesch](https://gitlab.tuebingen.mpg.de/jtesch), creator of the original blender addon for SMPL-X. This repo is a commercial-use extension of his addon which is available for academic use [here.](https://gitlab.tuebingen.mpg.de/jtesch/smplx_blender_addon)
+[Joachim Tesch](https://gitlab.tuebingen.mpg.de/jtesch), creator of the original blender addon for SMPL-X. This repo is a commercial-use extension of his addon which is available for academic use [here.](https://gitlab.tuebingen.mpg.de/jtesch/smplx_blender_addon)
 
 ## Changelog
 
