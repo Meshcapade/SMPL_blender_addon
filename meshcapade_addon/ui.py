@@ -64,7 +64,7 @@ class SMPL_PT_Shape(bpy.types.Panel):
         col.prop(context.window_manager.smpl_tool, "height")
         col.prop(context.window_manager.smpl_tool, "weight")
         
-        if (alert):
+        if alert:
             col.label(text="Measurements are outdated.")
 
         row = col2.row(align=True)

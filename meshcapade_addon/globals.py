@@ -212,12 +212,6 @@ NUM_SMPLH_JOINTS = len(SMPLX_JOINT_NAMES)
 NUM_SMPLH_BODY_JOINTS = 21   
 NUM_SMPLH_HAND_JOINTS = 15   # must be per hand
 
-'''
-HIGH = "high"
-MEDIUM = "medium"
-LOW = "low"
-'''
-
 OS = platform.system()
 PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -240,3 +234,18 @@ class UV_TYPE(Enum):
 class EXPORT_TYPE(Enum):
     FBX = "fbx"
     OBJ = "obj"
+
+class MODEL_JOINT_NAMES(Enum):
+    SUPR = SUPR_JOINT_NAMES
+    SMPLX = SMPLX_JOINT_NAMES
+    SMPLH = SMPLH_JOINT_NAMES
+
+class MODEL_BODY_JOINTS(Enum):
+    SMPLH = 21
+    SMPLX = 21
+    SUPR = 21
+
+class MODEL_HAND_JOINTS(Enum):
+    SMPLH = 15
+    SMPLX = 15
+    SUPR = 15

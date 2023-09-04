@@ -10,7 +10,6 @@ bl_info = {
     "category": "Meshcapade",
 }
 
-
 if "bpy" in locals():
     import importlib
     if "meshcapade_addon" in locals():
