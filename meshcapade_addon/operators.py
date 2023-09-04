@@ -22,13 +22,13 @@ from .globals import (
     PATH,
     LEFT_HAND_RELAXED,
     RIGHT_HAND_RELAXED,
+    MODEL_JOINT_NAMES,
+    MODEL_BODY_JOINTS,
+    MODEL_HAND_JOINTS,
 )
 from .blender import (
     set_pose_from_rodrigues,
     rodrigues_from_pose,
-    get_joint_names,
-    get_num_body_joints,
-    get_num_hand_joints,
     setup_bone,
     correct_for_anim_format,
 )
@@ -100,10 +100,7 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
 
     @classmethod
     def poll(cls, context):
-        try:
-            # Always enable button
-            return True
-        except: return False
+        return True
 
     def execute(self, context):
         target_framerate = self.target_framerate
@@ -112,47 +109,41 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
         print("Loading: " + self.filepath)
         with np.load(self.filepath) as data:
             # Check for valid AMASS file
-            error_string = "the following keys are missing from the .npz:"
-            error = False
-            if ("trans" not in data):
-                error = True
+            error_string = ""
+            if "trans" not in data:
                 error_string += "\n -trans"
 
-            if ("gender" not in data):
-                error = True
+            if "gender" not in data:
                 error_string += "\n -gender"
-
-            if (("mocap_frame_rate" not in data) and ("mocap_framerate" not in data) and ("fps" not in data)): 
-                error = True
-                error_string += "\n -fps or mocap_framerate or mocap_frame_rate"
-
-            if ("betas" not in data):
-                error = True
-                error_string += "\n -betas"
-
-            if ("poses" not in data):
-                error = True
-                error_string += "\n -poses"
-        
-            if (error):
-                self.report({"ERROR"}, error_string)
-                return {"CANCELLED"}
-
-            trans = data["trans"]
-
-            if (self.gender_override != "disabled"):
-                gender = self.gender_override
-            else:
-                gender = str(data["gender"])
 
             if "mocap_frame_rate" in data:
                 fps_key = "mocap_frame_rate"
             elif "mocap_framerate" in data:
                 fps_key = "mocap_framerate"
-            else:
+            elif "fps" in data:
                 fps_key = "fps"
 
-            fps = int(data[fps_key])
+            if not fps_key:
+                error_string += "\n -fps or mocap_framerate or mocap_frame_rate"
+            else: 
+                fps = int(data[fps_key])
+
+            if "betas" not in data:
+                error_string += "\n -betas"
+
+            if "poses" not in data:
+                error_string += "\n -poses"
+        
+            if error_string:
+                self.report({"ERROR"}, "the following keys are missing from the .npz: " + error_string)
+                return {"CANCELLED"}
+
+            trans = data["trans"]
+
+            if self.gender_override != "disabled":
+                gender = self.gender_override
+            else:
+                gender = str(data["gender"])
 
             betas = data["betas"]
             poses = data["poses"]
@@ -163,7 +154,7 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
             
             SMPL_version = self.SMPL_version
 
-        if (context.active_object is not None):
+        if context.active_object is not None:
             bpy.ops.object.mode_set(mode='OBJECT')
 
         print ("gender: " + gender)
@@ -173,7 +164,7 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
         context.window_manager.smpl_tool.gender = gender
         context.window_manager.smpl_tool.SMPL_version = SMPL_version
 
-        if (self.hand_pose != 'disabled'):
+        if self.hand_pose != 'disabled':
             context.window_manager.smpl_tool.hand_pose = self.hand_pose
 
         bpy.ops.scene.create_avatar()
@@ -212,43 +203,37 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
         else:
             print(f"Adding pose keyframes: {num_keyframes}")
 
-        if len(bpy.data.actions) == 0:
-            # Set end frame if we don't have any previous animations in the scene
-            context.scene.frame_end = num_keyframes
-        elif num_keyframes > context.scene.frame_end:
+        # Set end frame if we don't have any previous animations in the scene
+        if (len(bpy.data.actions) == 0) or (num_keyframes > context.scene.frame_end):
             context.scene.frame_end = num_keyframes
 
-        joint_names = get_joint_names(SMPL_version)
-        joints_to_use = joint_names
+        joints_to_use = MODEL_JOINT_NAMES[SMPL_version].value
 
         # override hand pose if it's selected
         # don't pose the hands every frame if we're overriding it
-        if (self.hand_pose != 'disabled'):
+        if self.hand_pose != 'disabled':
             bpy.ops.object.set_hand_pose('EXEC_DEFAULT')
 
             if SMPL_version == 'SMPLH':
-                joints_to_use = joint_names[:22]
+                joints_to_use = joints_to_use[:22]
             else:
-                joints_to_use = joint_names[:25]
-                print (joints_to_use)
+                joints_to_use = joints_to_use[:25]
 
         for index, frame in enumerate(range(0, num_frames, step_size)):
             if (index % 100) == 0:
                 print(f"  {index}/{num_keyframes}")
-            current_frame = index + 1
             current_pose = poses[frame].reshape(-1, 3)
             current_trans = trans[frame]
 
             for bone_index, bone_name in enumerate(joints_to_use):
                 if bone_name == "pelvis":
                     # there's a scale mismatch somewhere and the global translation is off by a factor of 100
-                    armature.pose.bones[bone_name].location = Vector((current_trans[0]*100, current_trans[1]*100, current_trans[2]*100))
-                    armature.pose.bones[bone_name].keyframe_insert('location', frame=current_frame)
+                    armature.pose.bones[bone_name].location = current_trans*100
+                    armature.pose.bones[bone_name].keyframe_insert('location', frame=index+1)
 
                 # Keyframe bone rotation
-                pose_rodrigues = current_pose[bone_index]
-                set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
-                armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=current_frame)
+                set_pose_from_rodrigues(armature, bone_name, current_pose[bone_index])
+                armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=index+1)
 
             if self.keyframe_corrective_pose_weights:
                 # Calculate corrective poseshape weights for current pose and keyframe them.
@@ -256,7 +241,7 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
                 bpy.ops.object.update_pose_correctives('EXEC_DEFAULT')
                 for key_block in obj.data.shape_keys.key_blocks:
                     if key_block.name.startswith("Pose"):
-                        key_block.keyframe_insert("value", frame=current_frame)
+                        key_block.keyframe_insert("value", frame=index+1)
 
         correct_for_anim_format(self.anim_format, armature)
 
@@ -276,28 +261,23 @@ class OP_CreateAvatar(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if in Object Mode
-            SMPL_version = context.window_manager.smpl_tool.SMPL_version
-
-            if (context.active_object is None) or (context.active_object.mode == 'OBJECT'):
-                return True
-            else: 
-                return False
+            return (context.active_object is None) or (context.active_object.mode == 'OBJECT')
         except: return False
 
     def execute(self, context):
         gender = context.window_manager.smpl_tool.gender
         SMPL_version = context.window_manager.smpl_tool.SMPL_version
 
-        if (SMPL_version == 'SMPLX'):
+        if SMPL_version == 'SMPLX':
             # Use 300 shape model by default if available
             model_file = SMPLX_MODELFILE
 
-        elif (SMPL_version == 'SUPR'):
+        elif SMPL_version == 'SUPR':
             model_file = SUPR_MODELFILE
 
         # for now, the SMPLH option has been removed from the properties because we don't have regressors for it, 
         # so afm and a bunch of other stuff doesn't work
-        elif (SMPL_version == "SMPLH"):
+        elif SMPL_version == "SMPLH":
             model_file = SMPLH_MODELFILE
 
         else:
@@ -320,7 +300,7 @@ class OP_CreateAvatar(bpy.types.Operator):
 
         # add a texture and change the texture option based on the gender
         # male texture if it's a male, female texture if it's female or neutral
-        if (gender == 'male'):
+        if gender == 'male':
             context.window_manager.smpl_tool.texture = "m"
         else:
             context.window_manager.smpl_tool.texture = "f"
@@ -341,10 +321,7 @@ class OP_SetTexture(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if in active object is mesh
-            if (context.object.type == 'MESH'):
-                return True
-            else:
-                return False
+            return context.object.type == 'MESH'
         except: return False
 
     def execute(self, context):
@@ -352,7 +329,7 @@ class OP_SetTexture(bpy.types.Operator):
         obj = bpy.context.object
 
         # if there's no material, add one
-        if (len(obj.data.materials) == 0):
+        if len(obj.data.materials) == 0:
             # the incoming name of the selected object is in the format of "SUPR-mesh-male"
             # this line turns "SUPR-mesh-male" into "SUPR-male", which is the naming format of the materials
             split_name = obj.name.split("-")
@@ -587,7 +564,7 @@ class OP_MeasurementsToShape(bpy.types.Operator):
 class OP_RandomBodyShape(bpy.types.Operator):
     bl_idname = "object.random_body_shape"
     bl_label = "Random Body Shape"
-    bl_description = ("Sets all shape blend shape keys to a random value")
+    bl_description = ("Sets all shape blendshape keys to a random value")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -620,7 +597,7 @@ class OP_RandomBodyShape(bpy.types.Operator):
 class OP_RandomFaceShape(bpy.types.Operator):
     bl_idname = "object.random_face_shape"
     bl_label = "Random Face Shape"
-    bl_description = ("Sets all shape blend shape keys to a random value")
+    bl_description = ("Sets all shape blendshape keys to a random value")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -648,7 +625,7 @@ class OP_RandomFaceShape(bpy.types.Operator):
 class OP_ResetBodyShape(bpy.types.Operator):
     bl_idname = "object.reset_body_shape"
     bl_label = "Reset Body Shape"
-    bl_description = ("Resets all blend shape keys for shape")
+    bl_description = ("Resets all blendshape keys for shape")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -672,13 +649,13 @@ class OP_ResetBodyShape(bpy.types.Operator):
         # This results in a mismatch between the shape keys and the height and weight sliders, 
         # but the shape keys at 0.0 is what's actually being represented in the model, and when you slide the sliders, you can't tell.
         # I think this is the right way to do it.  
-        if (gender == "male"):
+        if gender == "male":
             context.window_manager.smpl_tool.height = 178.40813305675982
             context.window_manager.smpl_tool.weight = 84.48267403991704
-        elif (gender == "female"):
+        elif gender == "female":
             context.window_manager.smpl_tool.height = 165.58187348544598
             context.window_manager.smpl_tool.weight = 69.80320278887571
-        elif (gender == "neutral"):
+        elif gender == "neutral":
             context.window_manager.smpl_tool.height = 172.05153398364783
             context.window_manager.smpl_tool.weight = 77.51340327590397
 
@@ -700,7 +677,7 @@ class OP_ResetBodyShape(bpy.types.Operator):
 class OP_ResetFaceShape(bpy.types.Operator):
     bl_idname = "object.reset_face_shape"
     bl_label = "Reset Face Shape"
-    bl_description = ("Resets all blend shape keys for shape")
+    bl_description = ("Resets all blendshape keys for shape")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -727,7 +704,7 @@ class OP_ResetFaceShape(bpy.types.Operator):
 class OP_RandomExpressionShape(bpy.types.Operator):
     bl_idname = "object.random_expression_shape"
     bl_label = "Random Facial Expression"
-    bl_description = ("Sets all face expression blend shape keys to a random value")
+    bl_description = ("Sets all face expression blendshape keys to a random value")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -751,7 +728,7 @@ class OP_RandomExpressionShape(bpy.types.Operator):
 class OP_ResetExpressionShape(bpy.types.Operator):
     bl_idname = "object.reset_expression_shape"
     bl_label = "Reset"
-    bl_description = ("Resets all blend shape keys for face expression")
+    bl_description = ("Resets all blendshape keys for face expression")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -855,11 +832,11 @@ class OP_UpdateJointLocations(bpy.types.Operator):
         SMPL_version = bpy.context.object['SMPL_version']
 
         # SMPLH is missing the joint regressor so we just want to exit
-        if (SMPL_version == 'SMPLH'):
+        if SMPL_version == 'SMPLH':
             return {'CANCELLED'}
 
         gender = bpy.context.object['gender']
-        joint_names = get_joint_names(SMPL_version)
+        joint_names = MODEL_JOINT_NAMES[SMPL_version].value
         num_joints = len(joint_names)
 
         # Get beta shapes
@@ -934,11 +911,11 @@ class OP_CalculatePoseCorrectives(bpy.types.Operator):
         return(Quaternion(r, theta))
 
     # https://github.com/gulvarol/surreal/blob/master/datageneration/main_part1.py
-    # Calculate weights of pose corrective blend shapes
+    # Calculate weights of pose corrective blendshapes
     # Input is pose of all 55 joints, output is weights for all joints except pelvis
     def rodrigues_to_posecorrective_weight(self, context, pose):
         SMPL_version = bpy.context.object['SMPL_version']
-        joint_names = get_joint_names(SMPL_version)
+        joint_names = MODEL_JOINT_NAMES[SMPL_version].value
         num_joints = len(joint_names)
         
         if SMPL_version in ('SMPLX', 'SMPLH'):
@@ -967,7 +944,7 @@ class OP_CalculatePoseCorrectives(bpy.types.Operator):
     def execute(self, context):
         obj = bpy.context.object
         SMPL_version = bpy.context.object['SMPL_version']
-        joint_names = get_joint_names(SMPL_version)
+        joint_names = MODEL_JOINT_NAMES[SMPL_version].value
         num_joints = len(joint_names)
 
         # Get armature pose in rodrigues representation
@@ -988,7 +965,9 @@ class OP_CalculatePoseCorrectives(bpy.types.Operator):
 
         poseweights = self.rodrigues_to_posecorrective_weight(context, pose)
 
-        if (SMPL_version == 'SMPLH'):
+        # TODO for the time being, the SMPLX pose correctives only go to 0-206.  
+        # It should be 0-485, but we're not sure why the fingers aren't being written out of the blender-worker  
+        if SMPL_version in ['SMPLH', 'SMPLX']:
             poseweights_to_use = poseweights[0:207]
         else:
             poseweights_to_use = poseweights
@@ -1090,11 +1069,11 @@ class OP_SetHandpose(bpy.types.Operator):
         hand_pose_name = context.window_manager.smpl_tool.hand_pose
 
         # flat is just an array of 45 0's so we don't want to load it from a file 
-        if (hand_pose_name == 'flat'):
+        if hand_pose_name == 'flat':
             left_hand_pose = np.zeros(45)
             right_hand_pose = np.zeros(45)
         
-        elif (hand_pose_name == 'relaxed'):
+        elif hand_pose_name == 'relaxed':
             left_hand_pose = LEFT_HAND_RELAXED
             right_hand_pose = RIGHT_HAND_RELAXED
 
@@ -1105,9 +1084,9 @@ class OP_SetHandpose(bpy.types.Operator):
         hand_pose = np.concatenate((left_hand_pose, right_hand_pose)).reshape(-1, 3)
 
         SMPL_version = bpy.context.object['SMPL_version']
-        joint_names = get_joint_names(SMPL_version)
-        num_body_joints = get_num_body_joints(SMPL_version)
-        num_hand_joints = get_num_hand_joints(SMPL_version)
+        joint_names = MODEL_JOINT_NAMES[SMPL_version].value
+        num_body_joints = MODEL_BODY_JOINTS[SMPL_version].value
+        num_hand_joints = MODEL_HAND_JOINTS[SMPL_version].value
 
         hand_joint_start_index = 1 + num_body_joints
 
@@ -1139,7 +1118,8 @@ class OP_WritePoseToConsole(bpy.types.Operator):
 
     def execute(self, context):
         obj = bpy.context.object
-        joint_names = get_joint_names(bpy.context.object['SMPL_version'])
+        SMPL_version = bpy.context.object['SMPL_version']
+        joint_names = MODEL_JOINT_NAMES[SMPL_version].value
         num_joints = len(joint_names)
 
         if obj.type == 'MESH':
@@ -1189,7 +1169,7 @@ class OP_WritePoseToJSON(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         obj = bpy.context.object
         SMPL_version = bpy.context.object['SMPL_version']
-        joint_names = get_joint_names(SMPL_version)
+        joint_names = MODEL_JOINT_NAMES[SMPL_version].value
         num_joints = len(joint_names)
 
         if obj.type == 'MESH':
@@ -1253,6 +1233,7 @@ class OP_ResetPose(bpy.types.Operator):
         return {'FINISHED'}
 
 
+# TODO once we have AFV, we need to replace this with load animation, so you can load any animation onto any body and treat them separately
 class OP_LoadPose(bpy.types.Operator, ImportHelper):
     bl_idname = "object.load_pose"
     bl_label = "Load Pose"
@@ -1281,11 +1262,14 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
         ]
     )
 
+    # taking this out for now
+    '''
     update_shape: BoolProperty(
         name="Update shape parameters",
         description="Update shape parameters using the beta shape information in the loaded file.  This is hard coded to false for SMPLH.",
-        default=True
+        default=False
     )
+    '''
 
     frame_number: IntProperty(
         name="Frame Number",
@@ -1307,10 +1291,10 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
 
         SMPL_version = bpy.context.object['SMPL_version']
         gender = bpy.context.object['gender']
-        joint_names = get_joint_names(SMPL_version)
+        joint_names = MODEL_JOINT_NAMES[SMPL_version].value
         num_joints = len(joint_names)
-        num_body_joints = get_num_body_joints(SMPL_version)
-        num_hand_joints = get_num_hand_joints(SMPL_version)
+        num_body_joints = MODEL_BODY_JOINTS[SMPL_version].value
+        num_hand_joints = MODEL_HAND_JOINTS[SMPL_version].value
 
         if obj.type == 'MESH':
             armature = obj.parent
@@ -1318,10 +1302,6 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
             armature = obj
             obj = armature.children[0]
             context.view_layer.objects.active = obj # mesh needs to be active object for recalculating joint locations
-
-        if (self.hand_pose != 'disabled'):
-            context.window_manager.smpl_tool.hand_pose = self.hand_pose
-            bpy.ops.object.set_hand_pose('EXEC_DEFAULT')
 
         print("Loading: " + self.filepath)
 
@@ -1337,19 +1317,41 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
         expression = None
         with open(self.filepath, "rb") as f:
             extension = os.path.splitext(self.filepath)[1]
-            if (extension == ".pkl"): 
+            if extension == ".pkl": 
                 data = pickle.load(f, encoding="latin1")
-            elif (extension == ".npz"):
+            elif extension == ".npz":
                 data = np.load(f, allow_pickle=True)
-            elif (extension == ".npy"):
+            elif extension == ".npy":
                 data = np.load(f, allow_pickle=True)
-            elif (extension == ".json"):
+            elif extension == ".json":
                 data = json.load(f)
 
             if "global_orient" in data:
                 global_orient = np.array(data["global_orient"]).reshape(3)
 
-            if (extension == '.pkl'):
+            # it's not working anymore for some reason, but loading the betas onto a body isn't that useful because you could just load the body instead.  
+            '''
+            if extension in ['.npz', 'pkl']:
+                betas = np.array(data["betas"]).reshape(-1).tolist()
+    
+            # Update shape if selected
+            # TODO once we get the SMPLH regressor, we can take the SMPLH part out of this
+            if self.update_shape and SMPL_version != 'SMPLH':
+                bpy.ops.object.mode_set(mode='OBJECT')
+
+                if (extension in ['.npz', 'pkl']):
+                    for index, beta in enumerate(betas):
+                        key_block_name = f"Shape{index:03}"
+
+                        if key_block_name in obj.data.shape_keys.key_blocks:
+                            obj.data.shape_keys.key_blocks[key_block_name].value = beta
+                        else:
+                            print(f"ERROR: No key block for: {key_block_name}")
+
+                bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
+            '''
+
+            if extension == '.pkl':
                 body_pose = np.array(data['body_pose'])
 
                 if body_pose.shape != (1, num_body_joints * 3):
@@ -1371,7 +1373,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                     bone_name = joint_names[index + 1] 
                     set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
-            elif (extension == '.npz'):
+            elif extension == '.npz':
                 correct_pose_key = 'pose'
 
                 try: 
@@ -1391,7 +1393,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                     bone_name = joint_names[index]
                     set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
-            elif (extension == '.npy'):
+            elif extension == '.npy':
                 # assuming a .npy containing a single pose
                 body_pose = np.array(data).reshape(len(joint_names), 3)
                 
@@ -1401,7 +1403,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                     bone_name = joint_names[index]
                     set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
 
-            elif (extension == '.json'):
+            elif extension == '.json':
                 with open(self.filepath, "rb") as f:
                     pose_data = json.load(f)
                     
@@ -1411,25 +1413,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                     pose_rodrigues = pose[index]
                     bone_name = joint_names[index]
                     set_pose_from_rodrigues(armature, bone_name, pose_rodrigues)
-               
-            if (extension in ['.npz', 'pkl']):
-                betas = np.array(data["betas"]).reshape(-1).tolist()
-
-        # Update shape if selected
-        # TODO once we get the SMPLH regressor, we can take the SMPLH part out of this
-        if self.update_shape and SMPL_version != 'SMPLH':
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            if (extension in ['.npz', 'pkl']):
-                for index, beta in enumerate(betas):
-                    key_block_name = f"Shape{index:03}"
-
-                    if key_block_name in obj.data.shape_keys.key_blocks:
-                        obj.data.shape_keys.key_blocks[key_block_name].value = beta
-                    else:
-                        print(f"ERROR: No key block for: {key_block_name}")
-
-            bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
+                       
 
         if global_orient is not None:
             set_pose_from_rodrigues(armature, "pelvis", global_orient)
@@ -1440,11 +1424,15 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
             # Set translation
             armature.location = (translation[0], -translation[2], translation[1])
 
+        if self.hand_pose != 'disabled':
+            context.window_manager.smpl_tool.hand_pose = self.hand_pose
+            bpy.ops.object.set_hand_pose('EXEC_DEFAULT')
+
         # Activate corrective poseshapes
         bpy.ops.object.set_pose_correctives('EXEC_DEFAULT')
 
         # Set face expression
-        if (extension == '.pkl'):
+        if extension == '.pkl':
             set_pose_from_rodrigues(armature, "jaw", jaw_pose)  
 
             for index, exp in enumerate(expression):
@@ -1476,6 +1464,7 @@ class OP_SetExpressionPreset(bpy.types.Operator):
     def execute(self, context):
         SMPL_version = bpy.context.object['SMPL_version']
 
+
         obj = context.object
         if not obj or not obj.data.shape_keys:
             self.report(
@@ -1483,19 +1472,19 @@ class OP_SetExpressionPreset(bpy.types.Operator):
             )
             return {"CANCELLED"}
 
-        if (SMPL_version == 'SMPLX'):
+        if SMPL_version == 'SMPLX':
+            bpy.ops.object.reset_expression_shape('EXEC_DEFAULT')
             presets = {
-                "pleasant": [0, 0.30, 0, -0.30, -0.40, 0, -0.20, 0, 0.30, 0],
-                "happy": [0.93, 0, 0, 0, 0.27, 0, 0.29, 0, -1.00, 0],
-                "excited": [0, 0, 0, 0, 1.50, 0.90, 0, 0, -0.70, 0],
-                "sad": [-0.20, 0, 0, 0, -1.60, 0, -1.30, 0, 0.60, 0],
-                "frustrated": [0, 0.75, -1.20, 0.13, -0.60, 0.62, -0.90, -0.78, 0, -1.56],
-                "angry": [1.11, 1.69, -0.27, 0, -0.78, 0, -1.24, 1.29, -0.22, -2.00],
+                "pleasant": [0, .3, 0, -.892, 0, 0, 0, 0, -1.188, 0, .741, -2.83, 0, -1.48, 0, 0, 0, 0, 0, -.89, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .89, 0, 0, 2.67],
+                "happy": [0.9, 0, .741, -2, .27, -.593, -.29, 0, .333, 0, 1.037, -1, 0, .7, .296, 0, 0, -1.037, 0, 0, 0, 1.037, 0, 3],
+                "excited": [-.593, .593, .7, -1.55, -.32, -1.186, -.43, -.14, -.26, -.88, 1, -.74, 1, -.593, 0, 0, 0, 0, 0, 0, -.593],
+                "sad": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7.8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 2,2,-2, 1, 1.6, 2, 1.6],
+                "frustrated": [0, 0, -1.33, 1.63, 0, -1.185, 2.519, 0, 0, -.593, -.444],
+                "angry": [0, 0, -2.074, 1.185, 1.63, -1.78, 1.63, .444, .89, .74, -4, 1.63, -1.93, -2.37, -4],
             }
         
-        elif (SMPL_version == 'SUPR'):
+        elif SMPL_version == 'SUPR':
             bpy.ops.object.reset_expression_shape('EXEC_DEFAULT')
-
             presets = {
                 "pleasant": [0.3, 0, -0.2, 0, 0, 0, 0, 0, 0.3, 0.4],
                 "happy":  [1.3, 0, 0, 0, -0.3, 0, 0.7, 0, -1, 0],
@@ -1530,10 +1519,7 @@ class OP_ModifyMetadata(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if in Object Mode
-            if (context.active_object is None) or (context.active_object.mode == 'OBJECT'):
-                return True
-            else: 
-                return False
+            return (context.active_object is None) or (context.active_object.mode == 'OBJECT')
         except: return False
 
     def execute(self, context):
@@ -1559,10 +1545,7 @@ class OP_ReadMetadata(bpy.types.Operator):
     def poll(cls, context):
         try:
             # Enable button only if in Object Mode
-            if (context.active_object is None) or (context.active_object.mode == 'OBJECT'):
-                return True
-            else: 
-                return False
+            return (context.active_object is None) or (context.active_object.mode == 'OBJECT')
         except: return False
 
     def execute(self, context):
@@ -1575,18 +1558,15 @@ class OP_ReadMetadata(bpy.types.Operator):
 # this is a known problem, but I don't know why it's doing that.  For now, we can fix it using this button
 class OP_FixBlendShapeRanges(bpy.types.Operator):
     bl_idname = "object.fix_blend_shape_ranges"
-    bl_label = "Fix Blend Shape Ranges"
-    bl_description = ("Click this for any imported .fbx to set the min and max values for all blendshapes to -10 to 10.  At the time of writing this, Blender hardcodes imported .fbx file's blend shape ranges to 0 and 1.  This means that all meshcapade.me and digidoppel .fbx files will have their blend shapes clamped.  Until Blender fixes this issue (they're working on it), this button functions as a workaround.")
+    bl_label = "Fix Blendshape Ranges"
+    bl_description = ("Click this for any imported .fbx to set the min and max values for all blendshapes to -10 to 10.  At the time of writing this, Blender hardcodes imported .fbx file's blendshape ranges to 0 and 1.  This means that all meshcapade.me and digidoppel .fbx files will have their blendshapes clamped.  Until Blender fixes this issue (they're working on it), this button functions as a workaround.")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
         try:
             # Enable button only if in Object Mode
-            if (context.active_object is None) or (context.active_object.mode == 'OBJECT'):
-                return True
-            else: 
-                return False
+            return (context.active_object is None) or (context.active_object.mode == 'OBJECT')
         except: return False
 
     def execute(self, context):

@@ -21,8 +21,8 @@ class PG_SMPLProperties(PropertyGroup):
         name = "SMPL version",
         description = "SMPL family version of the avatar you'd like to create",
         items = [ 
-            ("SUPR", "SUPR", ""),
             ("SMPLX", "SMPL-X", ""), 
+            ("SUPR", "SUPR", ""),
             ("SMPLH", "SMPL-H", ""),  #removing this for now because we don't have a joint regressor for it
         ]
     )
@@ -59,7 +59,7 @@ class PG_SMPLProperties(PropertyGroup):
 
     export_setting_shape_keys: EnumProperty(
         name="",
-        description="Blend shape export settings",
+        description="Blendshape export settings",
         items=[
             (
                 "SHAPE_POSE",

@@ -64,7 +64,7 @@ class SMPL_PT_Shape(bpy.types.Panel):
         col.prop(context.window_manager.smpl_tool, "height")
         col.prop(context.window_manager.smpl_tool, "weight")
         
-        if (alert):
+        if alert:
             col.label(text="Measurements are outdated.")
 
         row = col2.row(align=True)
@@ -158,7 +158,7 @@ class SMPL_PT_Export(bpy.types.Panel):
         layout = self.layout
         col = layout.column(align=True)
 
-        col.label(text="Shape Keys (Blend Shapes):")
+        col.label(text="Shape Keys (Blendshapes):")
         col.prop(context.window_manager.smpl_tool, "export_setting_shape_keys")
 
         col.separator()
@@ -185,7 +185,7 @@ class SMPL_PT_AdditionalTools(bpy.types.Panel):
         row2.operator("object.write_pose_to_json")
 
         col.separator()
-        col.operator("object.fix_blend_shape_ranges", text="Fix Blend Shape Ranges")
+        col.operator("object.fix_blend_shape_ranges", text="Fix Blendshape Ranges")
 
         (year, month, day) = VERSION
         col.label(text="Version: %s-%s-%s" % (year, month, day))

@@ -1,43 +1,8 @@
 import bpy
-from .globals import (
-    SUPR_JOINT_NAMES,
-    SMPLH_JOINT_NAMES,
-    SMPLX_JOINT_NAMES,
-)
+
 from mathutils import Vector, Quaternion
 from math import radians
 import os
-
-def get_joint_names(SMPL_version):
-    if (SMPL_version == None):
-        print ("there is no SMPL_version")
-        return ("SUPR")
-    if (SMPL_version == 'SUPR'):
-        return SUPR_JOINT_NAMES
-    elif (SMPL_version == 'SMPLX'):
-        return SMPLX_JOINT_NAMES
-    elif (SMPL_version == 'SMPLH'):
-        return SMPLH_JOINT_NAMES
-    else: 
-        return "error" 
-
-def get_num_body_joints(SMPL_version):
-    return 21
-    '''
-    if (SMPL_version == 'SUPR'):
-        return NUM_SUPR_BODY_JOINTS
-    elif (SMPL_version == 'SMPLX'):
-        return NUM_SMPLX_BODY_JOINTS
-    '''
-
-def get_num_hand_joints(SMPL_version):
-    return 15
-    '''
-    if (SMPL_version == 'SUPR'):
-        return NUM_SUPR_HAND_JOINTS
-    elif (SMPL_version == 'SMPLX'):
-        return NUM_SMPLX_HAND_JOINTS    
-    '''  
 
 def setup_bone(bone, SMPL_version):
     # TODO add SMPLH support
@@ -114,6 +79,9 @@ def export_object(obj, export_type, path):
         export_obj(path=path)
     elif export_type == EXPORT_TYPE.FBX.value:
         export_fbx(path=path)
+    else:
+        print ("ERROR, export type is not set to FBX or OBJ")
+    
 
 
 def set_active_object(obj):
@@ -175,8 +143,7 @@ def destroy_collection(collection):
 
 def rodrigues_from_pose(armature, bone_name):
     # Use quaternion mode for all bone rotations
-    if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
-        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
+    armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
 
     quat = armature.pose.bones[bone_name].rotation_quaternion
     (axis, angle) = quat.to_axis_angle()
@@ -191,8 +158,7 @@ def correct_for_anim_format(anim_format, armature):
         # AMASS target floor is XY ground plane for template in OpenGL Y-up space (XZ ground plane).
         # Since the Blender model is Z-up (and not Y-up) for rest/template pose, we need to adjust root node rotation to ensure that the resulting animated body is on Blender XY ground plane.
         bone_name = "root"
-        if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
-            armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
+        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
         armature.pose.bones[bone_name].rotation_quaternion = Quaternion((1.0, 0.0, 0.0), radians(-90))
         armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=1)
 
