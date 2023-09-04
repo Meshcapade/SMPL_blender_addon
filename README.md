@@ -28,7 +28,7 @@ The plugin as it exists here is free for all uses. However, there are certain fe
 <font size=2>
   <sup>1</sup>not SMPLH
   <br>
-  <sup>2</sup>commercial use only
+  <sup>2</sup>licensed users only
 </font>
 
 ## Installation
