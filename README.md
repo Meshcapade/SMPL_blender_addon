@@ -126,9 +126,7 @@ The two `Write Pose` buttons are so that you can see the poses in SMPL format.  
 - The blender code available in this repo is licensed under the GPL 3.0 license:
 https://www.gnu.org/licenses/gpl-3.0.en.html
 
-The SMPL, SMPL-H, SMPL-X, or SUPR model files used in or by this repo are available only under the SMPL-Model Academic license (available from Max Planck’s SMPL Model website: https://amass.is.tue.mpg.de/) or Commercial use license (available from Meshcapade’s licensing website: https://meshcapade.com/assets/body-models). Before using SMPL model files with this plugin, please make sure you have an active SMPL Model academic or commercial use license. See models_license.md for further license information about the SMPL models.
-
-- Body meshes generated using this add-on are covered under the SMPL-Body Creative-Commons-BY license: https://smpl.is.tue.mpg.de/bodylicense.html
+- The SMPL, SMPL-H, SMPL-X, or SUPR model files used in or by this repo are available only under the SMPL-Model Academic license (available from Max Planck’s SMPL Model website: https://amass.is.tue.mpg.de/) or Commercial use license (available from Meshcapade’s licensing website: https://meshcapade.com/assets/body-models). Before using SMPL model files with this plugin, please make sure you have an active SMPL Model academic or commercial use license. See models_license.md for further license information about the SMPL models.
 
 - Attribution for publications:
   - You agree to cite the most recent paper describing the model as specified on the appropriate model website: 
