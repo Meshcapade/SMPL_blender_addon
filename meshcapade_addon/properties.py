@@ -59,7 +59,7 @@ class PG_SMPLProperties(PropertyGroup):
 
     export_setting_shape_keys: EnumProperty(
         name="",
-        description="Blend shape export settings",
+        description="Blendshape export settings",
         items=[
             (
                 "SHAPE_POSE",

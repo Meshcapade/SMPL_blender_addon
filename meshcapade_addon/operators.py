@@ -587,7 +587,7 @@ class OP_MeasurementsToShape(bpy.types.Operator):
 class OP_RandomBodyShape(bpy.types.Operator):
     bl_idname = "object.random_body_shape"
     bl_label = "Random Body Shape"
-    bl_description = ("Sets all shape blend shape keys to a random value")
+    bl_description = ("Sets all shape blendshape keys to a random value")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -620,7 +620,7 @@ class OP_RandomBodyShape(bpy.types.Operator):
 class OP_RandomFaceShape(bpy.types.Operator):
     bl_idname = "object.random_face_shape"
     bl_label = "Random Face Shape"
-    bl_description = ("Sets all shape blend shape keys to a random value")
+    bl_description = ("Sets all shape blendshape keys to a random value")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -648,7 +648,7 @@ class OP_RandomFaceShape(bpy.types.Operator):
 class OP_ResetBodyShape(bpy.types.Operator):
     bl_idname = "object.reset_body_shape"
     bl_label = "Reset Body Shape"
-    bl_description = ("Resets all blend shape keys for shape")
+    bl_description = ("Resets all blendshape keys for shape")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -700,7 +700,7 @@ class OP_ResetBodyShape(bpy.types.Operator):
 class OP_ResetFaceShape(bpy.types.Operator):
     bl_idname = "object.reset_face_shape"
     bl_label = "Reset Face Shape"
-    bl_description = ("Resets all blend shape keys for shape")
+    bl_description = ("Resets all blendshape keys for shape")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -727,7 +727,7 @@ class OP_ResetFaceShape(bpy.types.Operator):
 class OP_RandomExpressionShape(bpy.types.Operator):
     bl_idname = "object.random_expression_shape"
     bl_label = "Random Facial Expression"
-    bl_description = ("Sets all face expression blend shape keys to a random value")
+    bl_description = ("Sets all face expression blendshape keys to a random value")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -751,7 +751,7 @@ class OP_RandomExpressionShape(bpy.types.Operator):
 class OP_ResetExpressionShape(bpy.types.Operator):
     bl_idname = "object.reset_expression_shape"
     bl_label = "Reset"
-    bl_description = ("Resets all blend shape keys for face expression")
+    bl_description = ("Resets all blendshape keys for face expression")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -931,7 +931,7 @@ class OP_CalculatePoseCorrectives(bpy.types.Operator):
         return(Quaternion(r, theta))
 
     # https://github.com/gulvarol/surreal/blob/master/datageneration/main_part1.py
-    # Calculate weights of pose corrective blend shapes
+    # Calculate weights of pose corrective blendshapes
     # Input is pose of all 55 joints, output is weights for all joints except pelvis
     def rodrigues_to_posecorrective_weight(self, context, pose):
         SMPL_version = bpy.context.object['SMPL_version']
@@ -1583,8 +1583,8 @@ class OP_ReadMetadata(bpy.types.Operator):
 # this is a known problem, but I don't know why it's doing that.  For now, we can fix it using this button
 class OP_FixBlendShapeRanges(bpy.types.Operator):
     bl_idname = "object.fix_blend_shape_ranges"
-    bl_label = "Fix Blend Shape Ranges"
-    bl_description = ("Click this for any imported .fbx to set the min and max values for all blendshapes to -10 to 10.  At the time of writing this, Blender hardcodes imported .fbx file's blend shape ranges to 0 and 1.  This means that all meshcapade.me and digidoppel .fbx files will have their blend shapes clamped.  Until Blender fixes this issue (they're working on it), this button functions as a workaround.")
+    bl_label = "Fix Blendshape Ranges"
+    bl_description = ("Click this for any imported .fbx to set the min and max values for all blendshapes to -10 to 10.  At the time of writing this, Blender hardcodes imported .fbx file's blendshape ranges to 0 and 1.  This means that all meshcapade.me and digidoppel .fbx files will have their blendshapes clamped.  Until Blender fixes this issue (they're working on it), this button functions as a workaround.")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
