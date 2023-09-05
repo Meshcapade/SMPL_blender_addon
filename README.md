@@ -1,5 +1,5 @@
 # About
-This addon is an extension of the [SMPL-X Blender addon](https://www.youtube.com/watch?v=DY2k29Jef94) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL-H, SMPL-X, STAR and SUPR) from Max Planck Institute, and is making this extension of the blender add-on available for all users who either have an active license for the SMPL Model (academic or commercial), or are users of Meshcapade’s 3D avatar platform [meshcapade.me](meshcapade.me).
+This addon is an extension of the [SMPL-X Blender addon](https://www.youtube.com/watch?v=DY2k29Jef94) created by Joachim Tesch and owned by the Max Planck Institute for Intelligent Systems. Meshcapade has licensed the SMPL model and its updates (including SMPL-H, SMPL-X, STAR and SUPR) from Max Planck Institute, and is making this extension of the blender add-on available for all users who either have an active license for the SMPL Model (academic or commercial), or are users of Meshcapade’s 3D avatar platform [meshcapade.me](https://meshcapade.me/).
 
 This add-on allows you to edit, reshape and animate [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) bodies ("SMPL Bodies" for short) to your current Blender scene. Each body consists of a mesh, a shape specific skeleton, and blendshapes (also known as "shape keys") for body shape, facial expressions and pose correctives.
 
@@ -88,7 +88,7 @@ This will be slightly different depending on your Linux distribution.
 
 ## Getting avatars inside Blender
 
-There are a few ways to get Meshcapade avatars into Blender. One way is to create and download free avatars from our platform, [meshcapade.me](meshcapade.me). You can create up to 5 free avatars a day, or you can purchase credits to be able to do more than that.
+There are a few ways to get Meshcapade avatars into Blender. One way is to create and download free avatars from our platform, [meshcapade.me](https://meshcapade.me/). You can create up to 5 free avatars a day, or you can purchase credits to be able to do more than that.
 
 Academic or commercial license customers of the SMPL Model (aka Licensed Users) can get an additional component to the plugin that allows them to add an unlimited number of SMPL bodies directly to their scenes.  They can either create avatars from scratch, or they can load .npz files that contain not only body shape definitions but animations as well.  Both of these methods support SMPL-H (to a limited extent), SMPL-X and SUPR bodies and you can create an unlimited number of avatars using these two methods.
 
