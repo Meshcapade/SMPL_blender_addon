@@ -59,8 +59,8 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
         name="SMPL Version",
         items=(
             #("guess", "Guess", ""),
-            ("SMPLH", "SMPL-H", ""),
             ("SMPLX", "SMPL-X", ""),
+            ("SMPLH", "SMPL-H", ""),
             ("SUPR", "SUPR", ""),
         ),
     )
@@ -247,6 +247,8 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
 
         print(f"  {num_keyframes}/{num_keyframes}")
         context.scene.frame_set(1)
+
+        bpy.ops.object.snap_to_ground_plane('EXEC_DEFAULT')
 
         return {'FINISHED'}
 
@@ -809,13 +811,13 @@ class OP_UpdateJointLocations(bpy.types.Operator):
             return False
 
     def load_regressor(self, gender, betas, SMPL_version):
+        # TODO recreate the SUPR joint regressor so that it doesn't include the 100 expression shape keys.  There are two `if SMPL_version == 'supr'` that we will be able to get rid of as a result
         if betas == 10:
             suffix = ""
         elif betas == 300:
             suffix = "_300"
         elif betas == 400:
             suffix = "_400"
-
         else:
             print(f"ERROR: No betas-to-joints regressor for desired beta shapes [{betas}]")
             return (None, None)
@@ -844,6 +846,7 @@ class OP_UpdateJointLocations(bpy.types.Operator):
         for key_block in obj.data.shape_keys.key_blocks:
             if key_block.name.startswith("Shape"):
                 betas.append(key_block.value)
+
         num_betas = len(betas)
         betas = np.array(betas)
 
@@ -1417,9 +1420,11 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
 
         correct_for_anim_format(self.anim_format, armature)
 
+        '''
         if translation is not None:
             # Set translation
             armature.location = (translation[0], -translation[2], translation[1])
+        '''
 
         if self.hand_pose != 'disabled':
             context.window_manager.smpl_tool.hand_pose = self.hand_pose
@@ -1439,6 +1444,8 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                     obj.data.shape_keys.key_blocks[key_block_name].value = exp
                 else:
                     print(f"ERROR: No key block for: {key_block_name}")
+
+        bpy.ops.object.snap_to_ground_plane('EXEC_DEFAULT')
 
         return {'FINISHED'}
 

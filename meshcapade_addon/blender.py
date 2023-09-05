@@ -168,9 +168,7 @@ def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=
     angle_rad = rod.length
     axis = rod.normalized()
 
-    if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
-        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
-
+    armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
     quat = Quaternion(axis, angle_rad)
 
     if rodrigues_reference is None:
