@@ -124,7 +124,7 @@ class SMPL_PT_Expression(bpy.types.Panel):
     def poll(cls, context):
         try:
             # Enable button only if mesh is active object
-            return (bpy.context.object['SMPL_version'] != 'SMPLH')
+            return ((bpy.context.object['SMPL_version'] != "SMPLH") and not ((bpy.context.object['SMPL_version'] == "SUPR") and (bpy.context.object['gender'] == "neutral")))
         except: return False
 
     def draw(self, context):

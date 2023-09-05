@@ -22,8 +22,8 @@ class PG_SMPLProperties(PropertyGroup):
         description = "SMPL family version of the avatar you'd like to create",
         items = [ 
             ("SMPLX", "SMPL-X", ""), 
-            ("SUPR", "SUPR", ""),
             ("SMPLH", "SMPL-H", ""),  #removing this for now because we don't have a joint regressor for it
+            ("SUPR", "SUPR", "")
         ]
     )
 
