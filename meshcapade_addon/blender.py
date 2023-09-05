@@ -1,10 +1,20 @@
 import bpy
-from .globals import (
-    FBX_TYPE,
-    OBJ_TYPE,
-)
-from mathutils import Vector, Quaternion
 
+from mathutils import Vector, Quaternion
+from math import radians
+import os
+
+def setup_bone(bone, SMPL_version):
+    # TODO add SMPLH support
+    if SMPL_version in ['SMPLX', 'SUPR']:
+        bone.head = (0.0, 0.0, 0.0)
+        bone.tail = (0.0, 10, 0)
+
+
+def get_uv_obj_path(uv_type, resolution):
+    path = os.path.dirname(os.path.realpath(__file__))
+    uv_obj_path = os.path.join(path, "data", "{}_{}.obj".format(uv_type, resolution))
+    return uv_obj_path
 
 def imported_object(func):
     '''Decorator that returns the imported object (Blender is lame and doesn't return from import).
@@ -65,10 +75,13 @@ def export_fbx(path):
 def export_object(obj, export_type, path):
     deselect()
     select_object(obj, select_hierarchy=True)
-    if export_type == OBJ_TYPE:
+    if export_type == EXPORT_TYPE.OBJ.value:
         export_obj(path=path)
-    elif export_type == FBX_TYPE:
+    elif export_type == EXPORT_TYPE.FBX.value:
         export_fbx(path=path)
+    else:
+        print ("ERROR, export type is not set to FBX or OBJ")
+    
 
 
 def set_active_object(obj):
@@ -130,8 +143,7 @@ def destroy_collection(collection):
 
 def rodrigues_from_pose(armature, bone_name):
     # Use quaternion mode for all bone rotations
-    if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
-        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
+    armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
 
     quat = armature.pose.bones[bone_name].rotation_quaternion
     (axis, angle) = quat.to_axis_angle()
@@ -141,11 +153,14 @@ def rodrigues_from_pose(armature, bone_name):
     return rodrigues
 
 
-def update_corrective_poseshapes(self, context):
-    if self.smplx_corrective_poseshapes:
-        bpy.ops.object.smplx_set_poseshapes('EXEC_DEFAULT')
-    else:
-        bpy.ops.object.smplx_reset_poseshapes('EXEC_DEFAULT')
+def correct_for_anim_format(anim_format, armature):
+    if anim_format == "AMASS":
+        # AMASS target floor is XY ground plane for template in OpenGL Y-up space (XZ ground plane).
+        # Since the Blender model is Z-up (and not Y-up) for rest/template pose, we need to adjust root node rotation to ensure that the resulting animated body is on Blender XY ground plane.
+        bone_name = "root"
+        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
+        armature.pose.bones[bone_name].rotation_quaternion = Quaternion((1.0, 0.0, 0.0), radians(-90))
+        armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=1)
 
 
 def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=None):
@@ -153,9 +168,7 @@ def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=
     angle_rad = rod.length
     axis = rod.normalized()
 
-    if armature.pose.bones[bone_name].rotation_mode != 'QUATERNION':
-        armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
-
+    armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
     quat = Quaternion(axis, angle_rad)
 
     if rodrigues_reference is None:
@@ -173,16 +186,6 @@ def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=
         axis_result = rod_result.normalized()
         quat_result = Quaternion(axis_result, angle_rad_result)
         armature.pose.bones[bone_name].rotation_quaternion = quat_result
-
-        """
-        rod_reference = Vector((rodrigues_reference[0], rodrigues_reference[1], rodrigues_reference[2]))
-        angle_rad_reference = rod_reference.length
-        axis_reference = rod_reference.normalized()
-        quat_reference = Quaternion(axis_reference, angle_rad_reference)
-
-        # Rotate first into reference pose and then add the target pose
-        armature.pose.bones[bone_name].rotation_quaternion = quat_reference @ quat
-        """
     return
 
 

@@ -1,23 +1,12 @@
-bl_info = {
-    "name": "SMPL-X and Meshcapade Utilities for Blender",
-    "author": "Joachim Tesch, Max Planck Institute for Intelligent Systems; Tyler Parker, Meshcapade",
-    "version": (2021, 8, 20),
-    "blender": (2, 92, 0),
-    "location": "Viewport > Right panel",
-    "description": "SMPL-X and Meshcapade Utilities for Blender",
-    "wiki_url": "https://smpl-x.is.tue.mpg.de/",
-    "category": "SMPL-X",
-}
+import bpy
+from . import (
+    properties,
+    ui,
+    operators,
+)
 
 
 def register():
-    import bpy
-    from . import (
-        properties,
-        ui,
-        operators,
-    )
-
     for prop_class in properties.PROPERTY_CLASSES:
         bpy.utils.register_class(prop_class)
 
@@ -31,13 +20,6 @@ def register():
 
 
 def unregister():
-    import bpy
-    from . import (
-        properties,
-        ui,
-        operators,
-    )
-
     properties.destroy_props()
 
     for operator in reversed(operators.OPERATORS):
