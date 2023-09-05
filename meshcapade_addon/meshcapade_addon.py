@@ -6,6 +6,11 @@ from . import (
 )
 
 
+handle_shape_key_change=object()
+def shape_key_change(*args):
+    bpy.ops.object.update_joint_locations('EXEC_DEFAULT')
+
+
 def register():
     for prop_class in properties.PROPERTY_CLASSES:
         bpy.utils.register_class(prop_class)
@@ -19,6 +24,16 @@ def register():
     properties.define_props()
 
 
+    #subscribe to changes of the shape keys and call the function to update the joint locations
+    bpy.msgbus.subscribe_rna(
+        key =  bpy.types.ShapeKey, #will check for all the properties changes in ShapeKeys. We are mostly interested in .value and .mute
+        owner=handle_shape_key_change,
+        args=(1, 2, 3),
+        notify=shape_key_change
+    )
+
+
+
 def unregister():
     properties.destroy_props()
 
@@ -30,3 +45,6 @@ def unregister():
 
     for prop_class in reversed(properties.PROPERTY_CLASSES):
         bpy.utils.unregister_class(prop_class)
+
+    bpy.msgbus.clear_by_owner(handle_shape_key_change)
+

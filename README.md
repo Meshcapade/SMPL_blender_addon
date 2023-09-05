@@ -17,7 +17,6 @@ The plugin as it exists here is free for all uses. However, there are certain fe
 - Randomize/reset body shape<sup>1, 2</sup> 
 - Randomize/reset face shape<sup>1, 2</sup> 
 - Randomize/reset facial expression <sup>1, 2</sup> 
-- Update joint locations<sup>1, 2</sup> 
 - Position body so that the feet are on the ground plane
 - Enable/disable pose corrective blendshapes for a single frame or for multiple frames
 - Change hand pose (flat, relaxed)<sup>2</sup> 

@@ -83,7 +83,6 @@ class SMPL_PT_Shape(bpy.types.Panel):
         split3.prop(context.window_manager.smpl_tool, "random_face_mult")
 
         col2.separator()
-        col2.operator("object.update_joint_locations")
 
 
 class SMPL_PT_Pose(bpy.types.Panel):
