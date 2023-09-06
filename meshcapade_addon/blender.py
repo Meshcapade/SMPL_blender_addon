@@ -170,9 +170,6 @@ def correct_for_anim_format(anim_format, armature, key=False):
         if key:
             armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=bpy.data.scenes[0].frame_current)
             armature.pose.bones[bone_name].keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
-            armature.keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
-
-
 
 
 def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=None, key=False):

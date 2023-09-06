@@ -242,12 +242,12 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
                 bpy.ops.object.set_pose_correctives('EXEC_DEFAULT')
                 key_all_pose_correctives(obj=obj, index=index+1)
 
-        correct_for_anim_format(self.anim_format, armature, key=True)
-
         print(f"  {num_keyframes}/{num_keyframes}")
         context.scene.frame_set(1)
 
+        correct_for_anim_format(self.anim_format, armature, key=True)
         bpy.ops.object.snap_to_ground_plane('EXEC_DEFAULT')
+        armature.keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
 
         return {'FINISHED'}
 
@@ -1445,8 +1445,9 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
         bpy.ops.object.set_pose_correctives('EXEC_DEFAULT')
         key_all_pose_correctives(obj=obj, index=bpy.data.scenes[0].frame_current)
 
-        bpy.ops.object.snap_to_ground_plane('EXEC_DEFAULT')
         correct_for_anim_format(self.anim_format, armature, key=True)
+        bpy.ops.object.snap_to_ground_plane('EXEC_DEFAULT')
+        armature.keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
 
         return {'FINISHED'}
 
