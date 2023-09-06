@@ -159,20 +159,18 @@ def rodrigues_from_pose(armature, bone_name):
     return rodrigues
 
 
-def correct_for_anim_format(anim_format, armature, key=False):
+def correct_for_anim_format(anim_format, armature):
     if anim_format == "AMASS":
         # AMASS target floor is XY ground plane for template in OpenGL Y-up space (XZ ground plane).
         # Since the Blender model is Z-up (and not Y-up) for rest/template pose, we need to adjust root node rotation to ensure that the resulting animated body is on Blender XY ground plane.
         bone_name = "root"
         armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
         armature.pose.bones[bone_name].rotation_quaternion = Quaternion((1.0, 0.0, 0.0), radians(-90))
-        
-        if key:
-            armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=bpy.data.scenes[0].frame_current)
-            armature.pose.bones[bone_name].keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
+        armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=bpy.data.scenes[0].frame_current)
+        armature.pose.bones[bone_name].keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
 
 
-def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=None, key=False):
+def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=None, frame=1):  # I wish frame=bpy.data.scenes[0].frame_current worked here, but it doesn't
     rod = Vector((rodrigues[0], rodrigues[1], rodrigues[2]))
     angle_rad = rod.length
     axis = rod.normalized()
@@ -197,13 +195,12 @@ def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=
         quat_result = Quaternion(axis_result, angle_rad_result)
         pbone.rotation_quaternion = quat_result
 
-    if key:
-        if bone_name == 'pelvis':
-            pbone.keyframe_insert('location', frame=bpy.data.scenes[0].frame_current)
-            pbone.keyframe_insert(data_path="rotation_quaternion", frame=bpy.data.scenes[0].frame_current)
+    pbone.keyframe_insert(data_path="rotation_quaternion", frame=frame)
+
+    if bone_name == 'pelvis':
+        pbone.keyframe_insert('location', frame=frame)
         
-        else:
-            pbone.keyframe_insert(data_path="rotation_quaternion", frame=bpy.data.scenes[0].frame_current)
+        
     return
 
 

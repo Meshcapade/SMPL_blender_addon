@@ -233,8 +233,7 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
                     armature.pose.bones[bone_name].keyframe_insert('location', frame=index+1)
 
                 # Keyframe bone rotation
-                set_pose_from_rodrigues(armature, bone_name, current_pose[bone_index])
-                armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=index+1)
+                set_pose_from_rodrigues(armature, bone_name, current_pose[bone_index], frame=index+1)
 
             if self.keyframe_corrective_pose_weights:
                 # Calculate corrective poseshape weights for current pose and keyframe them.
@@ -245,7 +244,7 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
         print(f"  {num_keyframes}/{num_keyframes}")
         context.scene.frame_set(1)
 
-        correct_for_anim_format(self.anim_format, armature, key=True)
+        correct_for_anim_format(self.anim_format, armature)
         bpy.ops.object.snap_to_ground_plane('EXEC_DEFAULT')
         armature.keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
 
@@ -1370,7 +1369,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                 for index in range(num_body_joints): 
                     pose_rodrigues = body_pose[index]
                     bone_name = joint_names[index + 1] 
-                    set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, key=True)
+                    set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, frame=bpy.data.scenes[0].frame_current)
 
             elif extension == '.npz':
                 correct_pose_key = 'pose'
@@ -1390,7 +1389,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                 for index in range(len(joint_names)):
                     pose_rodrigues = body_pose[index]
                     bone_name = joint_names[index]
-                    set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, key=True)
+                    set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, frame=bpy.data.scenes[0].frame_current)
 
             elif extension == '.npy':
                 # assuming a .npy containing a single pose
@@ -1400,7 +1399,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                 for index in range(len(joint_names)):
                     pose_rodrigues = body_pose[index]
                     bone_name = joint_names[index]
-                    set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, key=True)
+                    set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, frame=bpy.data.scenes[0].frame_current)
 
             elif extension == '.json':
                 with open(self.filepath, "rb") as f:
@@ -1411,11 +1410,11 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
                 for index in range(num_joints):
                     pose_rodrigues = pose[index]
                     bone_name = joint_names[index]
-                    set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, key=True)
+                    set_pose_from_rodrigues(armature, bone_name, pose_rodrigues, frame=bpy.data.scenes[0].frame_current)
                        
 
         if global_orient is not None:
-            set_pose_from_rodrigues(armature, "pelvis", global_orient)
+            set_pose_from_rodrigues(armature, "pelvis", global_orient, frame=bpy.data.scenes[0].frame_current)
 
         '''
         if translation is not None:
@@ -1432,7 +1431,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
 
         # Set face expression
         if extension == '.pkl':
-            set_pose_from_rodrigues(armature, "jaw", jaw_pose, key=True)  
+            set_pose_from_rodrigues(armature, "jaw", jaw_pose, frame=bpy.data.scenes[0].frame_current)
 
             for index, exp in enumerate(expression):
                 key_block_name = f"Exp{index:03}"
@@ -1445,7 +1444,7 @@ class OP_LoadPose(bpy.types.Operator, ImportHelper):
         bpy.ops.object.set_pose_correctives('EXEC_DEFAULT')
         key_all_pose_correctives(obj=obj, index=bpy.data.scenes[0].frame_current)
 
-        correct_for_anim_format(self.anim_format, armature, key=True)
+        correct_for_anim_format(self.anim_format, armature)
         bpy.ops.object.snap_to_ground_plane('EXEC_DEFAULT')
         armature.keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
 
