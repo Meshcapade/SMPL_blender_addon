@@ -16,6 +16,7 @@ def get_uv_obj_path(uv_type, resolution):
     uv_obj_path = os.path.join(path, "data", "{}_{}.obj".format(uv_type, resolution))
     return uv_obj_path
 
+
 def imported_object(func):
     '''Decorator that returns the imported object (Blender is lame and doesn't return from import).
         Assumes one imported object, and no return from the function
@@ -30,6 +31,12 @@ def imported_object(func):
         # Assumes one imported object
         return imported_objs.pop()
     return wrap
+
+
+def key_all_pose_correctives(obj, index):
+    for key_block in obj.data.shape_keys.key_blocks:
+        if key_block.name.startswith("Pose"):
+            key_block.keyframe_insert("value", frame=index)
 
 
 @imported_object
@@ -82,7 +89,6 @@ def export_object(obj, export_type, path):
     else:
         print ("ERROR, export type is not set to FBX or OBJ")
     
-
 
 def set_active_object(obj):
     bpy.context.view_layer.objects.active = obj
@@ -153,26 +159,33 @@ def rodrigues_from_pose(armature, bone_name):
     return rodrigues
 
 
-def correct_for_anim_format(anim_format, armature):
+def correct_for_anim_format(anim_format, armature, key=False):
     if anim_format == "AMASS":
         # AMASS target floor is XY ground plane for template in OpenGL Y-up space (XZ ground plane).
         # Since the Blender model is Z-up (and not Y-up) for rest/template pose, we need to adjust root node rotation to ensure that the resulting animated body is on Blender XY ground plane.
         bone_name = "root"
         armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
         armature.pose.bones[bone_name].rotation_quaternion = Quaternion((1.0, 0.0, 0.0), radians(-90))
-        armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=1)
+        
+        if key:
+            armature.pose.bones[bone_name].keyframe_insert('rotation_quaternion', frame=bpy.data.scenes[0].frame_current)
+            armature.pose.bones[bone_name].keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
+            armature.keyframe_insert(data_path="location", frame=bpy.data.scenes[0].frame_current)
 
 
-def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=None):
+
+
+def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=None, key=False):
     rod = Vector((rodrigues[0], rodrigues[1], rodrigues[2]))
     angle_rad = rod.length
     axis = rod.normalized()
 
-    armature.pose.bones[bone_name].rotation_mode = 'QUATERNION'
+    pbone = armature.pose.bones[bone_name]
+    pbone.rotation_mode = 'QUATERNION'
     quat = Quaternion(axis, angle_rad)
 
     if rodrigues_reference is None:
-        armature.pose.bones[bone_name].rotation_quaternion = quat
+        pbone.rotation_quaternion = quat
     else:
         # SMPL-X is adding the reference rodrigues rotation to the
         # relaxed hand rodrigues rotation, so we have to do the same here.
@@ -185,7 +198,15 @@ def set_pose_from_rodrigues(armature, bone_name, rodrigues, rodrigues_reference=
         angle_rad_result = rod_result.length
         axis_result = rod_result.normalized()
         quat_result = Quaternion(axis_result, angle_rad_result)
-        armature.pose.bones[bone_name].rotation_quaternion = quat_result
+        pbone.rotation_quaternion = quat_result
+
+    if key:
+        if bone_name == 'pelvis':
+            pbone.keyframe_insert('location', frame=bpy.data.scenes[0].frame_current)
+            pbone.keyframe_insert(data_path="rotation_quaternion", frame=bpy.data.scenes[0].frame_current)
+        
+        else:
+            pbone.keyframe_insert(data_path="rotation_quaternion", frame=bpy.data.scenes[0].frame_current)
     return
 
 
