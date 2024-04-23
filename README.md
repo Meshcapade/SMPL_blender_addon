@@ -3,8 +3,13 @@ This addon is an extension of the [SMPL-X Blender addon](https://www.youtube.com
 
 This add-on allows you to edit, reshape and animate [SMPL-H](https://mano.is.tue.mpg.de/), [SMPL-X](https://smpl-x.is.tue.mpg.de), and [SUPR](https://supr.is.tue.mpg.de) bodies ("SMPL Bodies" for short) to your current Blender scene. Each body consists of a mesh, a shape specific skeleton, and blendshapes (also known as "shape keys") for body shape, facial expressions and pose correctives.
 
+# Using the add-on with meshcapade.me platform
+If you have a file created on the [meshcapade.me](http://meshcapade.me/) platform, you can use this blender add-on for updating the pose-correctives of your downloaded files.
 
-# Licensed Users
+Here is a  short video showing how to use this add-on with files downloaded from the [meshcapade.me](http://meshcapade.me/) platform: https://youtu.be/bqi_n-7dR5U?feature=shared
+
+
+# Using the add-on with a SMPL Model License
 The plugin as it exists here is free for all uses. However, there are certain features that require an additional data folder which you get as part of being a licensed user of the SMPL Model. Academic licenses are free. More information about academic, commercial and R&D licenses can be found [on our website](https://meshcapade.com/assets/body-models) or by contacting sales@meshcapade.com.
 
 # Features
@@ -120,12 +125,18 @@ Meshcapade avatars have additional metadata on them that tell the plugin what ge
 
 The two `Write Pose` buttons are so that you can see the poses in SMPL format.  This is something our internal machine learning scientists need.
 
+## Textured SMPL & SMPLX models
+If you are interested in only the SMPL, SMPLX textured sample files, you can access them here: 
+https://github.com/Meshcapade/SMPL_texture_samples
+
 ## Licenses
 
 - The blender code available in this repo is licensed under the GPL 3.0 license:
 https://www.gnu.org/licenses/gpl-3.0.en.html
 
 - The SMPL, SMPL-H, SMPL-X, or SUPR model files used in or by this repo are available only under the SMPL-Model Academic license (available from Max Planck’s SMPL Model website: https://amass.is.tue.mpg.de/) or Commercial use license (available from Meshcapade’s licensing website: https://meshcapade.com/assets/body-models). Before using SMPL model files with this plugin, please make sure you have an active SMPL Model academic or commercial use license. See models_license.md for further license information about the SMPL models.
+
+- The SMPL, SMPLX textured sample files are made available under the [SMPL-Body CC-BY4.0 license](https://smpl.is.tue.mpg.de/bodylicense.html).
 
 - Attribution for publications:
   - You agree to cite the most recent paper describing the model as specified on the appropriate model website: 
