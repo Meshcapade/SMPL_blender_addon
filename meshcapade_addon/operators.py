@@ -863,6 +863,8 @@ class OP_UpdateJointLocations(bpy.types.Operator):
         bpy.context.view_layer.objects.active = armature
         bpy.ops.object.mode_set(mode='EDIT')
 
+        armature.data.edit_bones[0].tail = armature.data.edit_bones[0].head - Vector((0.0,0.0,10.0))  # make the root joint stick out backwards so that it's not blocking anything.  purely visual
+
         for index in range(num_joints):
             bone = armature.data.edit_bones[joint_names[index]]
             setup_bone(bone, SMPL_version)
@@ -874,6 +876,23 @@ class OP_UpdateJointLocations(bpy.types.Operator):
                 bone_start = Vector((joint_location[0]*100, joint_location[1]*100, joint_location[2]*100))
 
             bone.translate(bone_start)
+
+            # orient the joints
+            if len(bone.children) == 1:     # if there's only one child, then just set the tail to the head of the child
+                bone.tail = bone.children[0].head
+            elif len(bone.children) == 0:   # if there's no child:
+                if "jaw" in bone.name:      # jaw bone sticks forward and down 
+                    bone.tail = bone.head + Vector((0.0,-5.0,10.0))
+                elif "eye" in bone.name:    # eye bones point forward
+                    bone.tail = bone.head + Vector((0.0,0,10.0))
+                else:                       # just stick out in the direction the parent bone is sticking out
+                    bone.tail = bone.parent.tail - bone.parent.head + bone.head
+            elif len(bone.children) == 5:   # if it's the hands, set it to point at the middle finger
+                for c in bone.children:
+                    if "middle" in c.name:
+                        middle_finger = c.head
+                
+                bone.tail = middle_finger
 
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.context.view_layer.objects.active = obj
