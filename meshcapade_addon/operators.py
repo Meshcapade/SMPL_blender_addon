@@ -124,10 +124,10 @@ class OP_LoadAvatar(bpy.types.Operator, ImportHelper):
             elif "fps" in data:
                 fps_key = "fps"
 
-            if not fps_key:
-                error_string += "\n -fps or mocap_framerate or mocap_frame_rate"
-            else: 
+            try:
                 fps = int(data[fps_key])
+            except NameError:
+                error_string += "\n -fps or mocap_framerate or mocap_frame_rate"               
 
             if "betas" not in data:
                 error_string += "\n -betas"
